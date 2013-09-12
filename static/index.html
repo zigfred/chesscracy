@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ChessCracy</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="css/chessboard-0.3.0.css">
+    <link rel="stylesheet" href="css/style.css">
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="js/bootstrap.js"></script>
+    <script src="js/chessboard-0.3.0.js"></script>
+    <script src="js/chess.js"></script>
+    <script src="http://cdn.sockjs.org/sockjs-0.3.min.js"></script>
+    <script src="js/site.js"></script>
+</head>
+<body>
+<div class="container" id="am-app">
+    <div class="navbar">
+        <div class="navbar-inner">
+            <ul class="nav">
+                <li>
+                    <h4 id="you_orientation">You are ????</h4>
+                </li>
+                <li class="divider-vertical"></li>
+                <li>
+                    <button id="switch_side" class="btn" type="button">Switch side</button>
+                </li>
+                <li class="divider-vertical"></li>
+                <li>
+                    <h4 id="your_move">Wait.</h4>
+                </li>
+                <li class="divider-vertical"></li>
+                <li>
+                    <p id="game_status" class="text-center"></p>
+                </li>
+                <li class="divider-vertical"></li>
+                <li>
+                    <div>
+                        <p id="white_count"  class="text-right">.</p>
+                        <p id="black_count" class="text-right">.</p>
+                    </div>
+                </li>
+                <li>
+                    <div>
+                        <span class="">White</span>
+                        <br>
+                        <span class="">Black</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="progress progress-danger progress_move">
+                        <div id="progress_move_w" class="bar" style="width: 0%;"></div>
+                    </div>
+                    <div class="progress progress-danger progress_move">
+                        <div id="progress_move_b" class="bar" style="width: 0%;"></div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="row">
+        <div class="span12" id="chat"></div>
+    </div>
+    <div class="row">
+        <div class="span8">
+            <div>
+                <canvas height='620' width='620' id='votes'>Обновите браузер</canvas>
+                <div id="board" style="width: 620px">Loading</div>
+            </div>
+        </div>
+        <div class="span4">
+            <div id="broadcast">
+                <div id="log"></div>
+                <div class="input-append">
+                    <input class="input-block-level" id="inputMsg" type="text">
+                    <button id="sendMsg" class="btn" type="button">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
+

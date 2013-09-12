@@ -1,0 +1,46 @@
+#log {
+    overflow-y: scroll;
+}
+#votes {
+    position: absolute;
+    z-index: -1;
+}
+/* white square */
+.white-1e1d7 {
+    color: #b58863;
+
+    /* Fallback for web browsers that doesn't support RGBa */
+    background: rgb(240, 217, 181);
+    /* RGBa with 0.6 opacity */
+    background: rgba(240, 217, 181, 0.65);
+    /* For IE 5.5 - 7*/
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#a5f0d9b5, endColorstr=#a5f0d9b5);
+    /* For IE 8*/
+    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#a5f0d9b5, endColorstr=#a5f0d9b5)";
+
+}
+
+/* black square */
+.black-3c85d {
+    color: #f0d9b5;
+
+    /* Fallback for web browsers that doesn't support RGBa */
+    background: rgb(181, 136, 99);
+    /* RGBa with 0.6 opacity */
+    background: rgba(181, 136, 99, 0.65);
+    /* For IE 5.5 - 7*/
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#a5b58863, endColorstr=#a5b58863);
+    /* For IE 8*/
+    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#a5b58863, endColorstr=#a5b58863)";
+
+}
+.progress_move {
+    width: 150px;
+    margin: 0;
+}
+#alert_move {
+
+}
+#white_count, #black_count {
+    margin: 0 5px;
+}
