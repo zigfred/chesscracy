@@ -581,7 +581,8 @@ function buildBoard(orientation) {
     orientation = 'white';
   }
 
-  var html = '';
+  var html = '',
+    boardFill = '';
 
   // algebraic notation / orientation
   var alpha = deepCopy(COLUMNS);
@@ -593,15 +594,18 @@ function buildBoard(orientation) {
 
   var squareColor = 'white';
   for (var i = 0; i < 8; i++) {
-    html += '<div class="' + CSS.row + '">';
+    html += '<div>';
+    boardFill += '<div class="' + CSS.row + '">';
     for (var j = 0; j < 8; j++) {
       var square = alpha[j] + row;
 
-      html += '<div class="' + CSS.square + ' ' + CSS[squareColor] + ' ' +
-        'square-' + square + '" ' +
+      html += '<div class="' + CSS.square + '" ' +
         'style="width: ' + SQUARE_SIZE + 'px; height: ' + SQUARE_SIZE + 'px" ' +
         'id="' + SQUARE_ELS_IDS[square] + '" ' +
         'data-square="' + square + '">';
+      boardFill += '<div class="' + CSS.square + ' ' + CSS[squareColor] + ' ' +
+        'square-' + square + '" ' +
+        'style="width: ' + SQUARE_SIZE + 'px; height: ' + SQUARE_SIZE + 'px" ' + '">';
 
       if (cfg.showNotation === true) {
         // alpha notation
@@ -619,10 +623,13 @@ function buildBoard(orientation) {
       }
 
       html += '</div>'; // end .square
+      boardFill += '</div>';
+
 
       squareColor = (squareColor === 'white' ? 'black' : 'white');
     }
     html += '<div class="' + CSS.clearfix + '"></div></div>';
+    boardFill += '<div class="' + CSS.clearfix + '"></div></div>';
 
     squareColor = (squareColor === 'white' ? 'black' : 'white');
 
@@ -633,7 +640,7 @@ function buildBoard(orientation) {
       row++;
     }
   }
-
+  html = '<div class="board-fill">' + boardFill + '</div>' + html;
   return html;
 }
 
