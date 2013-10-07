@@ -4,6 +4,7 @@
 #votes {
     position: absolute;
     z-index: -1;
+    padding: 2px;
 }
 
 .progress_move {

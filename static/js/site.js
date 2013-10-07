@@ -1,17 +1,12 @@
 $(window).load(function () {
-	window.game = new Game(620);
+	window.game = new Game();
 
 	$(document).keydown(function() {
 		$('#inputMsg').focus();
 	});
 });
 
-function Game(size) {
-	this.size = size;
-	this.sizeSquare = (size/8);
-	this.sizeSquareHalf = (size/8/2);
-	this.sizeShift = (2 * size/8/5 + size/8/5/5);
-	this.sizeShiftText = (2 * size/8/6);
+function Game() {
 
 	this.elms = {
 		board: $('#board'),
@@ -63,7 +58,8 @@ Game.prototype._init = function(data) {
 		orientation: (data.side=='w' ? 'white' : 'black'),
 		onDragStart: $.proxy(this.onDragStart, this),
 		onDrop: $.proxy(this.onDrop, this),
-		onSnapEnd: $.proxy(this.onSnapEnd, this)
+		onSnapEnd: $.proxy(this.onSnapEnd, this),
+    pieceTheme: 'img/chesspieces/small/{piece}.png'
 	};
 	// sizing
 	this.elms.board.width(this.size).height(this.size);
@@ -71,9 +67,16 @@ Game.prototype._init = function(data) {
 	this.elms.log.height(this.size-30);
 
 	this.board = new ChessBoard(this.elms.board, cfg);
-	this.chess = new Chess(data.fen);
-	this.ctx = this.elms.votes[0].getContext('2d');
+  var size = parseInt(this.elms.board.css('width'),10);
+  this.size = size-size%8;
+  this.sizeSquare = (this.size/8);
+  this.sizeSquareHalf = (this.size/8/2);
+  this.sizeShift = (this.size/8/2*0.96);
+  this.sizeShiftText = (this.size/8/2*0.80);
 
+  this.chess = new Chess(data.fen);
+
+  this.votes = new Svg('votes', this.size);
 
 	this.elms.you_orientation.html('You are '+ (data.side=='w' ? 'White':'Black') );
 
@@ -252,87 +255,20 @@ Game.prototype.turnAlert = function() {
 	}
 };
 
-
-/*
-		canvas line with arrow
- */
-function Line(x1,y1,x2,y2){
-	this.x1=x1;
-	this.y1=y1;
-	this.x2=x2;
-	this.y2=y2;
-}
-Line.prototype.drawWithArrowheads=function(ctx, width, own){
-
-	// arbitrary styling
-	ctx.strokeStyle = own ? 'red' : 'black';
-	ctx.fillStyle = own ? 'red' : 'black';
-	ctx.lineWidth=width||1;
-
-	// draw the line
-	ctx.beginPath();
-	ctx.moveTo(this.x1,this.y1);
-	ctx.lineTo(this.x2,this.y2);
-	ctx.stroke();
-
-	// draw the starting arrowhead
-	var startRadians=Math.atan((this.y2-this.y1)/(this.x2-this.x1));
-	startRadians+=((this.x2>this.x1)?-90:90)*Math.PI/180;
-	this.drawArrowhead(ctx,this.x1,this.y1,startRadians);
-	// draw the ending arrowhead
-	/*
-	 var endRadians=Math.atan((this.y2-this.y1)/(this.x2-this.x1));
-	 endRadians+=((this.x2>this.x1)?90:-90)*Math.PI/180;
-	 this.drawArrowhead(ctx,this.x2,this.y2,endRadians);
-	 */
-
-}
-Line.prototype.drawArrowhead=function(ctx,x,y,radians){
-	ctx.save();
-	ctx.beginPath();
-	ctx.translate(x,y);
-	ctx.rotate(radians);
-	ctx.moveTo(0,0);
-	ctx.lineTo(5,10);
-	ctx.lineTo(-5,10);
-	ctx.closePath();
-	ctx.restore();
-	ctx.fill();
-}
-
-
 /*
 		draw arrows with moves
 	*/
 
 Game.prototype.drawVotes = function(moves) {
-	this.clearCtx();
+	this.votes.clear();
 	for (var k in moves) {
 		if (moves.hasOwnProperty(k)) {
 			this.drawVote(k, moves[k]);
 		}
 	}
 }
-function Votes(size) {
-
-/*
-	this._drawMove({from:'e2', to:'e4', piece:'p'}, 5);
-	this._drawMove({from:'c2', to:'e2', piece:'p'}, 5);
-	this._drawMove({from:'e8', to:'e6', piece:'p'}, 5);
-	this._drawMove({from:'h2', to:'f2', piece:'p'}, 5);
-
-	this._drawMove({from:'c6', to:'e4', piece:'p'}, 5);
-	this._drawMove({from:'g2', to:'e4', piece:'p'}, 5);
-	this._drawMove({from:'g6', to:'e4', piece:'p'}, 5);
-	this._drawMove({from:'c2', to:'e4', piece:'p'}, 5);
-*/
-
-}
-Game.prototype.clearCtx = function() {
-	this.ctx.clearRect(0, 0, this.size, this.size);
-};
 Game.prototype.drawVote = function(move, votes) {
-	move = JSON.parse(move);
+  if (typeof move === 'string') move = JSON.parse(move);
 
 	var from = [move.from.charCodeAt(0)-97, 8-move.from[1]];
 	var to = [move.to.charCodeAt(0)-97, 8-move.to[1]];
@@ -361,35 +297,17 @@ Game.prototype.drawVote = function(move, votes) {
 	if (from[0]===to[0]) { // vertical move, y in center
 		fromSx = 0;
 		toSx = 0;
-		xText = toCx-2;
-		yText = toCy + (from[1]>to[1] ? this.sizeShiftText:-this.sizeShiftText);
+		xText = fromCx;
+		yText = fromCy + (from[1]>to[1] ? -this.sizeShiftText:this.sizeShiftText);
 	}	else if (from[1]===to[1]) { // horizontal move, x in center
 		fromSy = 0;
 		toSy = 0;
-		xText = toCx + (from[0]>to[0] ? this.sizeShiftText:-this.sizeShiftText);
-		yText = toCy-2;
+		xText = fromCx + (from[0]>to[0] ? -this.sizeShiftText:this.sizeShiftText);
+		yText = fromCy;
 	}	else { //diagonal move
-		xText = toCx + (from[0]>to[0] ? this.sizeShiftText:-this.sizeShiftText);
-		yText = toCy + (from[1]>to[1] ? this.sizeShiftText:-this.sizeShiftText);
+		xText = fromCx + (from[0]>to[0] ? -this.sizeShiftText:this.sizeShiftText);
+		yText = fromCy + (from[1]>to[1] ? -this.sizeShiftText:this.sizeShiftText);
 	}
-	/*
-	if (from[0]===to[0]) { // vertical move, y in center
-		x = 2;
-		y = (from[1]>to[1] ? 0 : 4);
-	}	else if (from[1]===to[1]) { // horizontal move, x in center
-		x = (from[0]>to[0] ? 4 : 0);
-		y = 2;
-	}	else { //diagonal move
-		x = (from[0]>to[0] ? 4 : 0);
-		y = (from[1]>to[1] ? 0 : 4);
-	}
-	var fromX = (from[0]-1) * this.size5 + x * this.size55 + this.size552;
-	var fromY = (9-from[1]-1) * this.size5 + x * this.size55 + this.size552;
-
-	var toX = (to[0]-1) * this.size5 + x * this.size55 + this.size552;
-	var toY = (9-to[1]-1) * this.size5 + x * this.size55 + this.size552;
-*/
-
 
 	fromX = fromCx + fromSx;
 	fromY = fromCy + fromSy;
@@ -404,21 +322,125 @@ Game.prototype.drawVote = function(move, votes) {
 		xText = this.size-xText;
 		yText = this.size-yText;
 	}
-	this.ctx.textBaseline = "middle";
-	this.ctx.textAlign = "center";
-	this.ctx.fillText(votes, xText, yText);
-/*
-	console.log(from, to)
-	console.log(this.size8)
-	console.log(this.size85)
 
-	console.log(fromCx, fromCy, toCx, toCy)
-	console.log( toX, toY, fromX, fromY)
-*/
-// create a new line object
-	var line=new Line( toX-1, toY-1, fromX, fromY);
 // draw the line
 	var width = ~~votes/this.stat.players[this.chess.turn()]*5;
-	line.drawWithArrowheads(this.ctx, width, (this.lastMove===move.from+'-'+move.to));
 
+  console.log("r: ", fromX, fromY, toX, toY, xText, yText)
+  this.votes.arrow({
+    x1: Math.round(fromX),
+    y1: Math.round(fromY),
+    x2: Math.round(toX),
+    y2: Math.round(toY),
+    stroke: width,
+    mine: (this.lastMove===move.from+'-'+move.to),
+    tX: Math.round(xText),
+    tY: Math.round(yText),
+    text: votes
+  });
+}
+
+  var Svg = (function() {
+    function Svg(id, size) {
+      var el = document.getElementById(id),
+        xmlns = "http://www.w3.org/2000/svg",
+        svgElem = document.createElementNS(xmlns, "svg"),
+        defs = document.createElementNS(xmlns, "defs"),
+        marker = document.createElementNS(xmlns, "marker"),
+        markerGreen = document.createElementNS(xmlns, "marker"),
+        mpath = document.createElementNS(xmlns, "path"),
+        mpathGreen = document.createElementNS(xmlns, "path");
+
+      svgElem.setAttribute("width", size);
+      svgElem.setAttribute("height", size);
+      mpath.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+      mpathGreen.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+      this.setAttr(marker, {
+        id: 'ArrowHead',
+        viewBox: '0 0 10 10',
+        refX: 0,
+        refY: 5,
+        markerUnits: 'strokeWidth',
+        markerWidth: 4,
+        markerHeight: 3,
+        orient: 'auto',
+        fill: 'gray'
+      });
+      this.setAttr(markerGreen, {
+        id: 'ArrowHeadGreen',
+        viewBox: '0 0 10 10',
+        refX: 0,
+        refY: 5,
+        markerUnits: 'strokeWidth',
+        markerWidth: 4,
+        markerHeight: 3,
+        orient: 'auto',
+        fill: 'green'
+      });
+
+      svgElem.appendChild(defs);
+      markerGreen.appendChild(mpathGreen);
+      marker.appendChild(mpath);
+      defs.appendChild(markerGreen);
+      defs.appendChild(marker);
+
+      this.svgElem = svgElem;
+      this.xmlns = xmlns;
+      this.lines = [];
+      el.appendChild(svgElem);
+    }
+
+    Svg.prototype.setAttr = function(el, attr) {
+      for (var i in attr) {
+        if (attr.hasOwnProperty(i)) {
+          el.setAttribute(i, attr[i]);
+        }
+      }
+    };
+    Svg.prototype.arrow = function(attr) {
+      var g = document.createElementNS(this.xmlns, "g");
+      var path = document.createElementNS(this.xmlns, "path");
+      var text = document.createElementNS(this.xmlns, "text");
+      this.setAttr(path, {
+        d: 'M ' + attr.x1 + ' ' + attr.y1 + ' L ' + attr.x2 + ' ' + attr.y2,
+        fill: 'none',
+        stroke: attr.mine ? 'green' : 'gray',
+        'stroke-width': (attr.stroke || 1),
+        'marker-end': 'url(#ArrowHead' + (attr.mine ? 'Green' : '') + ')'
+      });
+      this.setAttr(text, {
+        x: attr.tX,
+        y: attr.tY,
+        'text-anchor': 'middle',
+        'alignment-baseline': 'middle',
+        'font-size': 10,
+        'fill': "black",
+        'font-weight': 'bold'
+      });
+      text.appendChild(document.createTextNode(attr.text));
+      g.appendChild(path);
+      g.appendChild(text);
+      this.svgElem.appendChild(g);
+      this.lines.push(g);
+    };
+    Svg.prototype.clear = function() {
+      while (this.lines.length) {
+        this.svgElem.removeChild(this.lines.pop());
+      }
+    };
+    return Svg;
+  }
+)();
+
+function test() {
+
+  game.drawVote({from:"e2", to:"e4", piece:"p"}, 3.5);
+  game.drawVote({from:"c4", to:"e4", piece:"p"}, 3.2);
+  game.drawVote({from:"e6", to:"e4", piece:"p"}, 3.5);
+  game.drawVote({from:"g4", to:"e4", piece:"p"}, 3.3);
+
+  game.drawVote({from:"c6", to:"e4", piece:"p"}, 3.7);
+  game.drawVote({from:"g2", to:"e4", piece:"p"}, 3.3);
+  game.drawVote({from:"g6", to:"e4", piece:"p"}, 3.2);
+  game.drawVote({from:"c2", to:"e4", piece:"p"}, 3.4);
 }
