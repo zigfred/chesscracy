@@ -57,7 +57,7 @@ Game.prototype._sendStatus = function() {
   var self = this;
   this._statusInterval = setInterval(function(){
     self._broadcast({
-      type: 'status',
+      type: 'getStatus',
       data: {
         turn: self.chess.turn(),
         players: self.count,
@@ -151,10 +151,12 @@ Player.prototype.ondata = function(msg) {
   this['_'+msg.type](msg.data);
 };
 Player.prototype._move = function(move) {
+  // TODO save this vote and delete from list when connection lost
   var moveStr = JSON.stringify(move);
   if (!(moveStr in this.game.moves)) {
     this.game.moves[moveStr] = 0;
   }
+  // TODO it is wrong. move to status loop and fix
   if (++this.game.moves[moveStr] >= this.game.count[this.game.chess.turn()]) {
     this.game.moveTimeCounter.down();
   }
@@ -175,7 +177,7 @@ Player.prototype._write = function(data) {
 };
 Player.prototype.init = function() {
   this._write({
-    type: 'init',
+    type: 'start',
     data: {
       fen: this.game.chess.fen(),
       side: this._side,
