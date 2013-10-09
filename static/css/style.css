@@ -20,4 +20,5 @@
 .board-fill {
     position: absolute;
     z-index: -20;
+    width: inherit;
 }
