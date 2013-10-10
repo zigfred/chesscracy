@@ -53,10 +53,14 @@ define([
   var status = {};
 
   status.turnAlert = function(turnOn) {
+    elms.your_move
+      .removeClass('muted')
+      .removeClass('text-error');
+    clearInterval(this.turnAlertTimer);
+
     if (turnOn) {
       elms.your_move
         .addClass('text-error')
-        .removeClass('muted')
         .html('Move!');
       this.turnAlertTimer = setInterval(function() {
         elms.your_move
@@ -64,10 +68,8 @@ define([
           .fadeIn('fast');
       }, 1000);
     } else {
-      clearInterval(this.turnAlertTimer);
       elms.your_move.stop();
       elms.your_move
-        .removeClass('text-error')
         .addClass('muted')
         .html('Wait.');
     }
