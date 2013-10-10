@@ -107,11 +107,12 @@ define([
     this.board.position(this.board.chess.fen());
     this.myVote = '';
 
-    this.status.newTurn(data, Math.ceil(this.board.chess.history().length / 2));
-    this.status.turnAlert(this.board.orientation()[0] === this.board.chess.turn());
+    this.status.endTurn(data, Math.ceil(this.board.chess.history().length / 2));
 
     if (result = this.board.checkGameOver()) {
       this.status.gameOver(result);
+    } else {
+      this.status.turnAlert(this.board.orientation()[0] === this.board.chess.turn());
     }
   };
   Game.prototype.getStatus = function(data) {
@@ -128,6 +129,7 @@ define([
   Game.prototype.newgame = function(data) {
     this.board.newGame();
     this.status.newGame();
+    this.status.turnAlert(this.board.orientation()[0] === this.board.chess.turn());
   };
   Game.prototype.userMsg = function(data) {
     this.status.writeMsg(data);

@@ -88,7 +88,7 @@ define([
     update.progress(data.turn, data.progress_move);
 
   };
-  status.newTurn = function(move, n) {
+  status.endTurn = function(move, n) {
     update.progress('w', 0);
     update.progress('b', 0);
 
@@ -116,11 +116,13 @@ define([
     update.progress('w', 0);
     update.progress('b', 0);
     log(result, 'warning');
+    log('will restart in 20s', 'info');
+    status.turnAlert(false);
   };
   status.writeHistory = function(history) {
     var i = 1;
     while (history.length) {
-      status.newTurn(history.shift(), Math.ceil(i++ / 2));
+      status.endTurn(history.shift(), Math.ceil(i++ / 2));
     }
   };
   status.lostConnection = function() {
