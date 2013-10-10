@@ -31,7 +31,7 @@ define([
 
     this.status = status;
 
-    this.sock = sock($.proxy(this.sockMessage, this));
+    this.sock = sock($.proxy(this.sockMessage, this), $.proxy(this.status.lostConnection, this));
 
   }
 
@@ -45,8 +45,7 @@ define([
    */
   function onDragStart(source, piece, position, orientation) {
     return !(
-        this.board.chess.in_checkmate() === true ||
-        this.board.chess.in_draw() === true ||
+        this.board.chess.game_over() === true ||
         piece[0] !== orientation[0] ||
         this.board.chess.turn() !== orientation[0] ||
         this.myVote !== ''
@@ -80,6 +79,7 @@ define([
       el: this.elms.board,
       side: data.side,
       fen: data.fen,
+      pgn: data.pgn,
       onDragStart: $.proxy(onDragStart, this),
       onDrop: $.proxy(onDrop, this)
     });
@@ -89,6 +89,7 @@ define([
 
     this.myVote = '';
 
+    this.status.writeHistory(this.board.chess.history({verbose:true}));
     this.status.newSide(data.side);
     this.status.turnAlert(data.side === this.board.chess.turn());
 
@@ -101,14 +102,17 @@ define([
 
   };
   Game.prototype.move = function(data) {
-    var serverMove = data.from + '-' + data.to;
+    var result = false;
     this.board.chess.move(data);
     this.board.position(this.board.chess.fen());
     this.myVote = '';
-    //this.votes.clear();
 
-    this.status.newTurn(serverMove);
+    this.status.newTurn(data, Math.ceil(this.board.chess.history().length / 2));
     this.status.turnAlert(this.board.orientation()[0] === this.board.chess.turn());
+
+    if (result = this.board.checkGameOver()) {
+      this.status.gameOver(result);
+    }
   };
   Game.prototype.getStatus = function(data) {
     this.stat = data;
@@ -146,7 +150,7 @@ define([
 
     this._send({
       type: 'userMsg',
-      data: this.board.orientation()[0] + ': ' + this.elms.inputMsg.val()
+      data: this.elms.inputMsg.val()
     });
     this.elms.inputMsg.val('');
   };

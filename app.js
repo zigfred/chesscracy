@@ -52,7 +52,7 @@ Game.prototype.eachPlayers = function(func) {
       return func(this.players[key]);
     }
   }
-}
+};
 Game.prototype._sendStatus = function() {
   var self = this;
   this._statusInterval = setInterval(function(){
@@ -168,7 +168,10 @@ Player.prototype._switchside = function() {
 Player.prototype._userMsg = function(msg) {
   this.game._broadcast(JSON.stringify({
     type: 'userMsg',
-    data: msg
+    data: {
+      side: this._side,
+      msg: msg
+    }
   }));
 };
 Player.prototype._write = function(data) {
@@ -180,6 +183,7 @@ Player.prototype.init = function() {
     type: 'start',
     data: {
       fen: this.game.chess.fen(),
+      pgn: this.game.chess.pgn(),
       side: this._side,
       w: this.game.count.w,
       b: this.game.count.b

@@ -1,5 +1,7 @@
 #log {
     overflow-y: scroll;
+    margin-bottom: 5px;
+    padding-right: 5px;
 }
 #votes {
     position: absolute;
@@ -21,4 +23,23 @@
     position: absolute;
     z-index: -20;
     width: inherit;
+}
+#log .chat {
+    font-style: italic;
+}
+#log .move {
+
+}
+#log .info {
+    text-align: right;
+    color: slategray;
+}
+#log .warning {
+    font-weight: bold;
+    text-align: right;
+    color: green;
+}
+#log .warning {
+    text-align: right;
+    color: red;
 }
