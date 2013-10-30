@@ -83,12 +83,12 @@ define(function() {
      * @param {String} vote  stringified object or just object with move data
      * @param {Number} weight number of votes for this move
      * @param {String} orientation - board orientation, accept 'white' or 'w'
-     * @param {String} myVote user's vote 'e2-e4'
+     * @param {String} myVote user's vote 'Qf6'
      * @param {Number} totalVoters total number of players on this side of board (who can voting now)
      *
      * @returns {{x1: number, y1: number, x2: number, y2: number, stroke: number, mine: boolean, tX: number, tY: number, text: *}}
      */
-    function calcVotePosition(vote, weight, orientation, myVote, totalVoters) {
+    function calcVotePosition(san, vote, orientation, myVote, totalVoters) {
       if (typeof vote === 'string') {
         vote = JSON.parse(vote);
       }
@@ -98,8 +98,8 @@ define(function() {
         fromCx, fromCy, toCx, toCy,
         fromSx, fromSy, toSx, toSy,
         xText, yText,
-        from = [vote.from.charCodeAt(0) - 97, 8 - vote.from[1]],
-        to = [vote.to.charCodeAt(0) - 97, 8 - vote.to[1]];
+        from = [vote.xy.charCodeAt(0) - 97, 8 - vote.xy[1]],
+        to = [vote.xy.charCodeAt(3) - 97, 8 - vote.xy[4]];
 
 
 
@@ -131,7 +131,7 @@ define(function() {
         yText = toCy + (from[1] > to[1] ? sizeShiftText : -sizeShiftText);
 
         // correcting shift for Knights
-        if (vote.piece === 'n') {
+        if (san[0] === 'N') {
           if (Math.abs(from[0] - to[0]) === 1) {
             fromSx = (from[0] > to[0] ? -sizeShift/2 : sizeShift/2);
             toSx = (from[0] < to[0] ? -sizeShift/2 : sizeShift/2);
@@ -162,7 +162,7 @@ define(function() {
 
       // calc weight of votes
       // TODO need smart calc
-      var width = ~~weight / totalVoters * 4 + 1;
+      var width = ~~vote.times / totalVoters * 4 + 1;
 
       return {
         x1: Math.round(fromX),
@@ -170,10 +170,10 @@ define(function() {
         x2: Math.round(toX),
         y2: Math.round(toY),
         stroke: width,
-        mine: (myVote === vote.from + '-' + vote.to),
+        mine: (myVote === san),
         tX: Math.round(xText),
         tY: Math.round(yText),
-        text: weight
+        text: vote.times
       };
     }
 
@@ -215,7 +215,7 @@ define(function() {
      *
      * @param {Object} votes array of votes
      * @param {String} orientation - board orientation, accept 'white' or 'w'
-     * @param {String} myVote user's vote 'e2-e4'
+     * @param {String} myVote user's vote 'Qf6'
      * @param {Number} totalVoters total number of players on this side of board (who can voting now)
      */
 

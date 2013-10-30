@@ -37,7 +37,8 @@ define([
 
 
   Game.prototype.sockMessage = function(data) {
-    this[data.type](data.data);
+    console.log(data.type, data.data);
+    this['ws_' + data.type](data.data);
   };
 
   /*
@@ -57,13 +58,13 @@ define([
       to: target,
       promotion: 'q' // NOTE: always promote to a pawn for example simplicity
     });
-
+console.log(move)
     if (move !== null) {
       this._send({
-        type: 'move',
-        data: move
+        type: 'vote',
+        data: move.san
       });
-      this.myVote = move.from + '-' + move.to;
+      this.myVote = move.san;
       this.board.chess.undo();
       this.status.turnAlert(false);
     }
@@ -73,7 +74,11 @@ define([
    /*
    ws handlers
    */
-  Game.prototype.start = function(data) {
+  Game.prototype.ws_players = function(data) {
+    this.status.updatePlayers(data);
+  };
+
+  Game.prototype.ws_start = function(data) {
 
     this.board = board({
       el: this.elms.board,
@@ -92,6 +97,8 @@ define([
     this.status.writeHistory(this.board.chess.history({verbose:true}));
     this.status.newSide(data.side);
     this.status.turnAlert(data.side === this.board.chess.turn());
+    this.status.updatePlayers(data.count);
+    this.status.progress.start(data.side, data.progress);
 
     this.elms.switch_side.on('click', $.proxy(this.switchSide, this));
     this.elms.inputMsg.on('keypress', $.proxy(this.sendMsg, this));
@@ -101,13 +108,15 @@ define([
     });
 
   };
-  Game.prototype.move = function(data) {
-    var result = false;
+  Game.prototype.ws_move = function(data) {
+    var result = false,
+      color = this.board.chess.turn();
     this.board.chess.move(data);
     this.board.position(this.board.chess.fen());
     this.myVote = '';
+    this.votes({}); //clear votes
 
-    this.status.endTurn(data, Math.ceil(this.board.chess.history().length / 2));
+    this.status.endTurn(data, Math.ceil(this.board.chess.history().length / 2), color);
 
     if (result = this.board.checkGameOver()) {
       this.status.gameOver(result);
@@ -115,26 +124,24 @@ define([
       this.status.turnAlert(this.board.orientation()[0] === this.board.chess.turn());
     }
   };
-  Game.prototype.getStatus = function(data) {
-    this.stat = data;
-    this.status.newData(data);
-    this.votes(data.moves, this.board.orientation(), this.myVote, this.stat.players[this.board.chess.turn()]);
-  };
-  Game.prototype.switchside = function(data) {
-    this.board.orientation(data.side);
+  Game.prototype.ws_switchside = function() {
+    var newSide = this.board.orientation() === 'white' ? 'black' : 'white';
+    this.board.orientation(newSide);
 
-    this.status.newSide(data.side);
-    this.status.turnAlert(data.side[0] === this.board.chess.turn());
+    this.status.newSide(newSide[0]);
+    this.status.turnAlert(newSide[0] === this.board.chess.turn());
   };
-  Game.prototype.newgame = function(data) {
+  Game.prototype.ws_newgame = function(data) {
     this.board.newGame();
     this.status.newGame();
     this.status.turnAlert(this.board.orientation()[0] === this.board.chess.turn());
   };
-  Game.prototype.userMsg = function(data) {
+  Game.prototype.ws_say = function(data) {
     this.status.writeMsg(data);
   };
-
+  Game.prototype.ws_votes = function(votes) {
+    this.votes(votes, this.board.orientation(), this.myVote, this.status.getPlayers[this.board.chess.turn()]);
+  };
   /*
   methods
    */
@@ -151,7 +158,7 @@ define([
     }
 
     this._send({
-      type: 'userMsg',
+      type: 'say',
       data: this.elms.inputMsg.val()
     });
     this.elms.inputMsg.val('');

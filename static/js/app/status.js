@@ -3,16 +3,6 @@ define([
 ],function($) {
 
 
-  var data = {
-    turn: 'w',
-    players: {
-      w: 0,
-      b: 0
-    },
-    moves: {}, // array of votes
-    progress_move: {} // % of time to end turn
-  };
-
   var elms = {
     log: $('#log'),
     game_status: $('#game_status'),
@@ -42,6 +32,24 @@ define([
     },
     side: function(side) {
       elms.you_orientation.html('You are ' + (side[0] === 'w' ? 'White' : 'Black'));
+    }
+  };
+  var progress = {
+    reset: function() {
+      update.progress('w', 0);
+      update.progress('b', 0);
+      clearInterval(this.intervalId);
+      this.side = '';
+    },
+    start: function(side, current) {
+      this.reset();
+      this.current = current || 100;
+      this.side = side;
+      update.progress(side, this.current);
+      this.intervalId = setInterval(this.downProgress.bind(this), 200);
+    },
+    downProgress: function() {
+      update.progress(this.side, --this.current);
     }
   };
   var log = function(msg, css) {
@@ -82,52 +90,50 @@ define([
     log('You joined to ' + (side[0] === 'w' ? 'white' : 'black') + ' side', 'info');
     update.side(side);
   };
-  status.newData = function(data) {
-    // moves {}; players: b,w; progress_move %; turn;
-    update.count(data.players);
-    update.progress(data.turn, data.progress_move);
-
+  status.updatePlayers = function(data) {
+    update.count(data);
   };
-  status.endTurn = function(move, n) {
-    update.progress('w', 0);
-    update.progress('b', 0);
+  status.getPlayers = function(side) {
+    elms.count[side].innerHTML();
+  };
+  status.endTurn = function(move, n, color) {
+    progress.start(color === 'w' ? 'b' : 'w');
 
-    if (move.color === 'b') {
+    if (color === 'b') {
       var last = elms.log.children().last();
       if (last.hasClass('move')) {
-        last.children().last().html(move.san).addClass('label-success');
+        last.children().last().html(move).addClass('label-success');
         return;
       }
     }
 
     var html = '';
     html += '<span class="label">' + n + ':</span>';
-    html += ' <span class="label' + (move.color === 'w' ? ' label-success">' + move.san : '">...') + '</span>';
-    html += ' <span class="label' + (move.color === 'b' ? ' label-success">' + move.san : '">...') + '</span>';
+    html += ' <span class="label' + (color === 'w' ? ' label-success">' + move : '">...') + '</span>';
+    html += ' <span class="label' + (color === 'b' ? ' label-success">' + move : '">...') + '</span>';
 
     log(html, 'move');
   };
   status.newGame = function() {
-    update.progress('w', 0);
-    update.progress('b', 0);
+    progress.reset();
     log('New game started', 'info');
   };
   status.gameOver = function(result) {
-    update.progress('w', 0);
-    update.progress('b', 0);
+    progress.reset();
     log(result, 'warning');
-    log('will restart in 20s', 'info');
+    log('will restart in 30s', 'info');
     status.turnAlert(false);
   };
   status.writeHistory = function(history) {
     var i = 1;
     while (history.length) {
-      status.endTurn(history.shift(), Math.ceil(i++ / 2));
+      status.endTurn(history.shift().san, Math.ceil(i++ / 2), i%2 ? 'b' : 'w');
     }
   };
   status.lostConnection = function() {
     log('Connection lost', 'error');
   };
 
+  status.progress = progress;
   return status;
 });
