@@ -80,8 +80,8 @@ define(function() {
     /**
      * calc coordinates for arrow, return object with attributes for drawVote
      *
-     * @param {String} vote  stringified object or just object with move data
-     * @param {Number} weight number of votes for this move
+     * @param {String} san vote san
+     * @param {Object} vote  stringified object or just object with move data { xy: 'e2-e4', times: 10}
      * @param {String} orientation - board orientation, accept 'white' or 'w'
      * @param {String} myVote user's vote 'Qf6'
      * @param {Number} totalVoters total number of players on this side of board (who can voting now)

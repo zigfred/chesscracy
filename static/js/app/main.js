@@ -130,6 +130,7 @@ console.log(move)
 
     this.status.newSide(newSide[0]);
     this.status.turnAlert(newSide[0] === this.board.chess.turn());
+    // TODO redrow votes
   };
   Game.prototype.ws_newgame = function(data) {
     this.board.newGame();
@@ -140,7 +141,7 @@ console.log(move)
     this.status.writeMsg(data);
   };
   Game.prototype.ws_votes = function(votes) {
-    this.votes(votes, this.board.orientation(), this.myVote, this.status.getPlayers[this.board.chess.turn()]);
+    this.votes(votes, this.board.orientation(), this.myVote, this.status.getPlayers(this.board.chess.turn()));
   };
   /*
   methods

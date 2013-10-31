@@ -13,6 +13,57 @@ Player.prototype.write = function(data) {
   if (typeof data === 'object') data = JSON.stringify(data).replace(/\//g, '\\/');
   this.conn.write(data);
 };
+function Votes() {
+  this.votes = {};
+  this.players = {};
+}
+Votes.prototype.fill = function(moves) {
+  this.reset();
+  for (var i = 0, l = moves.length; i<l; i++) {
+    this.votes[moves[i].san] = {
+      times: 0,
+      xy: moves[i].from + '-' + moves[i].to
+    };
+  }
+};
+Votes.prototype.reset = function() {
+  this.votes = {};
+  this.players = {};
+};
+Votes.prototype.selectVoted = function() {
+  var r = {};
+  for (var i in this.votes) {
+    if (this.votes.hasOwnProperty(i)) {
+      if (this.votes[i].times > 0) r[i] = this.votes[i];
+    }
+  }
+  return r;
+};
+Votes.prototype.vote = function(san, playerId) {
+  if (!(san in this.votes) || (playerId in this.players)) return false;
+  this.players[playerId] = san;
+  this.votes[san].times++;
+  return true;
+};
+Votes.prototype.revoke = function(playerId) {
+  if (this.players[playerId] && this.votes[this.players[playerId]]) {
+    this.votes[this.players[playerId]].times--;
+    delete this.players[playerId];
+  }
+};
+Votes.prototype.calcWinner = function() {
+  var max = 0, move;
+  for (var san in this.votes) {
+    if (this.votes.hasOwnProperty(san)) {
+      if (this.votes[san].times > max) {
+        max = this.votes[san].times;
+        move = san;
+      }
+    }
+  }
+
+  return move;
+};
 
 var game = {
   addPlayer: function(conn) {
@@ -40,6 +91,7 @@ var game = {
   },
   removePlayer: function(id) {
     this.count[this.players[id].side]--;
+    this.votes.revoke(id);
     delete this.players[id];
     this.broadcast({
       type: 'players',
@@ -48,6 +100,7 @@ var game = {
   },
   init: function() {
     this.players = {};
+    this.votes = new Votes();
     this.count = { w: 0, b: 0};
     this.vTime = 20 * 1000; // max time for voting in milliseconds
 
@@ -62,8 +115,8 @@ var game = {
     }
   },
   makeMove: function() {
-    var move = this.getVoteWinner();
-    this.votes = {};
+    var move = this.votes.calcWinner();
+    this.votes.reset();
     if (!move) {
       move = this.getRandomMove().san;
     }
@@ -79,30 +132,8 @@ var game = {
     } else {
       this.electionTimeout = setTimeout(this.makeMoveBinded, this.vTime);
       this.electionStartTime = new Date();
-      this.renewVotes();
     }
-  },
-  renewVotes: function() {
-    this.votes = {};
-    var possibleMoves = game.chess.moves({ verbose: true });
-    for (var i = 0, l = possibleMoves.length; i<l; i++) {
-      this.votes[possibleMoves[i].san] = {
-        xy: possibleMoves[i].from + '-' + possibleMoves[i].to,
-        times: 0
-      }
-    }
-  },
-  getVoteWinner: function() {
-    var max = 0, move;
-    for (var key in this.votes) {
-      if (this.votes.hasOwnProperty(key)) {
-        if (this.votes[key].times > max) {
-          max = this.votes[key].times;
-          move = key;
-        }
-      }
-    }
-    return move;
+    this.votes.fill(game.chess.moves({ verbose: true }));
   },
   getRandomMove: function() {
     var possibleMoves = game.chess.moves({ verbose: true });
@@ -119,7 +150,7 @@ var game = {
   startNewGame: function() {
     var now = new Date();
     this.chess = new ch.Chess();
-    this.votes = {};
+    this.votes.fill(game.chess.moves({ verbose: true }));
     this.electionTimeout = setTimeout(this.makeMoveBinded, this.vTime);
     this.electionStartTime = new Date();
     this.broadcast({
@@ -135,26 +166,26 @@ var game = {
       }
     });
   },
-  vote: function(vote, player) {
-    // TODO save this vote and delete from list when connection lost
-    if (!(vote in this.votes)) {
-      return;
-    }
-    this.votes[vote].times++;
+  vote: function(vote, playerId) {
+    if (!this.votes.vote(vote, playerId)) return;
     // TODO make proxy
     this.broadcast({
       type: 'votes',
-      data: this.votes
+      data: this.votes.selectVoted()
     });
     // TODO check if all players voted then makeMove, clear timeout
   },
   switchPlayerSide: function(id) {
-    var player = this.players[id];
+    var player = this.players[id],
+      other = player.side=='w' ? 'b' : 'w';
     if (this.count[player.side] === 1) return;
-    var other = player.side=='w' ? 'b' : 'w';
+
     this.count[player.side]--;
     this.count[other]++;
     player.side = other;
+    // TODO resend votes
+    this.votes.revoke(id);
+
     player.write({
       type: 'switchside'
     });
@@ -170,7 +201,7 @@ var game = {
       this.say(data.data, this.players[id].side);
     }
     if (data.type === 'vote') {
-      this.vote(data.data, this.players[id]);
+      this.vote(data.data, id);
     }
     if (data.type === 'switchside') {
       this.switchPlayerSide(id);

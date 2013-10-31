@@ -94,7 +94,7 @@ define([
     update.count(data);
   };
   status.getPlayers = function(side) {
-    elms.count[side].innerHTML();
+    return elms.count[side][0].innerHTML;
   };
   status.endTurn = function(move, n, color) {
     progress.start(color === 'w' ? 'b' : 'w');
