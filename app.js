@@ -6,17 +6,36 @@ var server = require('http').createServer(app);
 var ch =  require('chess.js');
 var echo = sockjs.createServer();
 
+/**
+ * make player object, save link to user connection in
+ * @param conn
+ * @constructor
+ */
 function Player(conn) {
   this.conn = conn;
 }
+/**
+ * method for sending data object to user by websocket connection
+ * @param data {Object} object contain "type" (start, players, move, newgame, ...),
+ *                      and "data" object (optional)
+ */
 Player.prototype.write = function(data) {
   if (typeof data === 'object') data = JSON.stringify(data).replace(/\//g, '\\/');
   this.conn.write(data);
 };
+
+/**
+ * make object for manipulating votes
+ * @constructor
+ */
 function Votes() {
   this.votes = {};
   this.players = {};
 }
+/**
+ * clear votes and players, and fill votes object by possibly moves
+ * @param moves {Array} array with possibly moves for current turn, array from chess.js
+ */
 Votes.prototype.fill = function(moves) {
   this.reset();
   for (var i = 0, l = moves.length; i<l; i++) {
@@ -26,10 +45,17 @@ Votes.prototype.fill = function(moves) {
     };
   }
 };
+/**
+ * just clear objects for next turn
+ */
 Votes.prototype.reset = function() {
   this.votes = {};
   this.players = {};
 };
+/**
+ * select moves with votes
+ * @returns {Object} contain move objects like {'Qf5': {xy:'f2-f5', times: 5}}
+ */
 Votes.prototype.selectVoted = function() {
   var r = {};
   for (var i in this.votes) {
@@ -39,18 +65,32 @@ Votes.prototype.selectVoted = function() {
   }
   return r;
 };
+/**
+ * save vote and player id
+ * @param san {String} san of move for vote
+ * @param playerId {String} voter's id
+ * @returns {boolean} return false if player already voted or if move is not possible
+ */
 Votes.prototype.vote = function(san, playerId) {
   if (!(san in this.votes) || (playerId in this.players)) return false;
   this.players[playerId] = san;
   this.votes[san].times++;
   return true;
 };
+/**
+ * countdown vote for move, and remove player from list of players that already voted
+ * @param playerId {String}
+ */
 Votes.prototype.revoke = function(playerId) {
   if (this.players[playerId] && this.votes[this.players[playerId]]) {
     this.votes[this.players[playerId]].times--;
     delete this.players[playerId];
   }
 };
+/**
+ * find the most voted move and return it
+ * @returns {String} san
+ */
 Votes.prototype.calcWinner = function() {
   var max = 0, move;
   for (var san in this.votes) {
@@ -66,6 +106,15 @@ Votes.prototype.calcWinner = function() {
 };
 
 var game = {
+  init: function() {
+    this.players = {};
+    this.votes = new Votes();
+    this.count = { w: 0, b: 0};
+    this.vTime = 20 * 1000; // max time for voting in milliseconds
+
+    this.startNewGame();
+  },
+
   addPlayer: function(conn) {
     var player = new Player(conn);
     player.side = this.count.w <= this.count.b ? 'w' : 'b';
@@ -98,27 +147,12 @@ var game = {
       data: this.count
     });
   },
-  init: function() {
-    this.players = {};
-    this.votes = new Votes();
-    this.count = { w: 0, b: 0};
-    this.vTime = 20 * 1000; // max time for voting in milliseconds
 
-    this.startNewGame();
-  },
-
-  broadcast: function(data) {
-    for (var key in this.players) {
-      if(this.players.hasOwnProperty(key)) {
-        this.players[key].write(data);
-      }
-    }
-  },
   makeMove: function() {
     var move = this.votes.calcWinner();
     this.votes.reset();
     if (!move) {
-      move = this.getRandomMove().san;
+      move = this.getRandomMove();
     }
     this.chess.move(move);
 
@@ -138,7 +172,7 @@ var game = {
   getRandomMove: function() {
     var possibleMoves = game.chess.moves({ verbose: true });
     var randomIndex = Math.floor(Math.random() * possibleMoves.length);
-    return possibleMoves[randomIndex];
+    return possibleMoves[randomIndex].san;
   },
   makeGameover: function() {
     var self = this;
@@ -156,6 +190,27 @@ var game = {
     this.broadcast({
       type: 'newgame'
     });
+  },
+
+  broadcast: function(data) {
+    for (var key in this.players) {
+      if(this.players.hasOwnProperty(key)) {
+        this.players[key].write(data);
+      }
+    }
+  },
+  ondata: function(id, data) {
+    data = JSON.parse(data);
+    if (data.type === 'say') {
+      this.say(data.data, this.players[id].side);
+    }
+    if (data.type === 'vote') {
+      this.vote(data.data, id);
+    }
+    if (data.type === 'switchside') {
+      this.switchPlayerSide(id);
+    }
+
   },
   say: function(data, side) {
     this.broadcast({
@@ -193,20 +248,6 @@ var game = {
       type:'players',
       data: this.count
     });
-  },
-  ondata: function(id, data) {
-    data = JSON.parse(data);
-    console.log(data.type, data.data)
-    if (data.type === 'say') {
-      this.say(data.data, this.players[id].side);
-    }
-    if (data.type === 'vote') {
-      this.vote(data.data, id);
-    }
-    if (data.type === 'switchside') {
-      this.switchPlayerSide(id);
-    }
-
   }
 };
 game.makeMoveBinded = game.makeMove.bind(game);

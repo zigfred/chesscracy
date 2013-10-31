@@ -37,7 +37,6 @@ define([
 
 
   Game.prototype.sockMessage = function(data) {
-    console.log(data.type, data.data);
     this['ws_' + data.type](data.data);
   };
 
@@ -56,9 +55,9 @@ define([
     var move = this.board.chess.move({
       from: source,
       to: target,
-      promotion: 'q' // NOTE: always promote to a pawn for example simplicity
+      promotion: 'q' // TODO wrong way promotion
     });
-console.log(move)
+
     if (move !== null) {
       this._send({
         type: 'vote',
