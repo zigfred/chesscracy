@@ -127,7 +127,7 @@ var game = {
         pgn: this.chess.pgn(),
         side: player.side,
         count: this.count,
-        progress: ~~(100 - (+(new Date()) - +this.electionStartTime) / this.vTime *100)
+        endTurnTime: this.endTurnTime
       }
     });
 
@@ -149,23 +149,27 @@ var game = {
   },
 
   makeMove: function() {
-    var move = this.votes.calcWinner();
+    var move = this.votes.calcWinner(),
+      time = new Date();
     this.votes.reset();
     if (!move) {
       move = this.getRandomMove();
     }
     this.chess.move(move);
+    this.endTurnTime = time.setMilliseconds(time.getMilliseconds() + this.vTime);
 
     this.broadcast({
       type: 'move',
-      data: move
+      data: {
+        move: move,
+        endTurnTime: this.endTurnTime
+      }
     });
 
     if (this.chess.game_over()) {
       this.makeGameover();
     } else {
       this.electionTimeout = setTimeout(this.makeMoveBinded, this.vTime);
-      this.electionStartTime = new Date();
     }
     this.votes.fill(game.chess.moves({ verbose: true }));
   },
@@ -182,13 +186,16 @@ var game = {
     }, 30000);
   },
   startNewGame: function() {
-    var now = new Date();
+    var time = new Date();
     this.chess = new ch.Chess();
     this.votes.fill(game.chess.moves({ verbose: true }));
     this.electionTimeout = setTimeout(this.makeMoveBinded, this.vTime);
-    this.electionStartTime = new Date();
+    this.endTurnTime = time.setMilliseconds(time.getMilliseconds() + this.vTime);
     this.broadcast({
-      type: 'newgame'
+      type: 'newgame',
+      data: {
+        endTurnTime: this.endTurnTime
+      }
     });
   },
 

@@ -97,7 +97,7 @@ define([
     this.status.newSide(data.side);
     this.status.turnAlert(data.side === this.board.chess.turn());
     this.status.updatePlayers(data.count);
-    this.status.progress.start(data.side, data.progress);
+    this.status.progress.start(data.side, data.endTurnTime);
 
     this.elms.switch_side.on('click', $.proxy(this.switchSide, this));
     this.elms.inputMsg.on('keypress', $.proxy(this.sendMsg, this));
@@ -110,7 +110,7 @@ define([
   Game.prototype.ws_move = function(data) {
     var result = false,
       color = this.board.chess.turn();
-    this.board.chess.move(data);
+    this.board.chess.move(data.move);
     this.board.position(this.board.chess.fen());
     this.myVote = '';
     this.votes({}); //clear votes

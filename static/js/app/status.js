@@ -41,15 +41,15 @@ define([
       clearInterval(this.intervalId);
       this.side = '';
     },
-    start: function(side, current) {
+    start: function(side, endTurnTime) {
       this.reset();
-      this.current = current || 100;
+      this.endTurnTime = new Date(endTurnTime);
       this.side = side;
-      update.progress(side, this.current);
+      update.progress(side, (this.endTurnTime - new Date())/10/20);
       this.intervalId = setInterval(this.downProgress.bind(this), 200);
     },
     downProgress: function() {
-      update.progress(this.side, --this.current);
+      update.progress(this.side, (this.endTurnTime - new Date())/10/20);
     }
   };
   var log = function(msg, css) {
@@ -99,21 +99,21 @@ define([
   status.getPlayers = function(side) {
     return elms.count[side][0].innerHTML;
   };
-  status.endTurn = function(move, n, color) {
-    progress.start(color === 'w' ? 'b' : 'w');
+  status.endTurn = function(data, n, color) {
+    progress.start(color === 'w' ? 'b' : 'w', data.endTurnTime);
 
     if (color === 'b') {
       var last = elms.log.children().last();
       if (last.hasClass('move')) {
-        last.children().last().html(move).addClass('label-success');
+        last.children().last().html(data.move).addClass('label-success');
         return;
       }
     }
 
     var html = '';
     html += '<span class="label">' + n + ':</span>';
-    html += ' <span class="label' + (color === 'w' ? ' label-success">' + move : '">...') + '</span>';
-    html += ' <span class="label' + (color === 'b' ? ' label-success">' + move : '">...') + '</span>';
+    html += ' <span class="label' + (color === 'w' ? ' label-success">' + data.move : '">...') + '</span>';
+    html += ' <span class="label' + (color === 'b' ? ' label-success">' + data.move : '">...') + '</span>';
 
     log(html, 'move');
   };
@@ -130,7 +130,7 @@ define([
   status.writeHistory = function(history) {
     var i = 1;
     while (history.length) {
-      status.endTurn(history.shift().san, Math.ceil(i++ / 2), i%2 ? 'b' : 'w');
+      status.endTurn({move: history.shift().san}, Math.ceil(i++ / 2), i%2 ? 'b' : 'w');
     }
   };
   status.lostConnection = function() {
