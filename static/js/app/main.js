@@ -31,27 +31,23 @@ define([
 
     this.status = status;
 
-    this.sock = sock($.proxy(this.sockMessage, this), $.proxy(this.status.lostConnection, this));
+    this.sock = sock(this.sockMessage.bind(this), this.status.lostConnection);
 
   }
 
 
-  Game.prototype.sockMessage = function(data) {
-    this['ws_' + data.type](data.data);
-  };
-
   /*
-   board handlers
+   handlers
    */
-  function onDragStart(source, piece, position, orientation) {
+  Game.prototype.onDragStart = function(source, piece, position, orientation) {
     return !(
         this.board.chess.game_over() === true ||
         piece[0] !== orientation[0] ||
         this.board.chess.turn() !== orientation[0] ||
         this.myVote !== ''
       );
-  }
-  function onDrop(source, target) {
+  };
+  Game.prototype.onDrop = function(source, target) {
     var move = this.board.chess.move({
       from: source,
       to: target,
@@ -65,16 +61,36 @@ define([
       });
       this.myVote = move.san;
       this.board.chess.undo();
-      this.status.turnAlert(false);
+      this.status.voted();
     }
     return 'snapback';
-  }
+  };
+  Game.prototype.sendMsg = function(e) {
+    if ([1, 13].indexOf(e.which) === -1 || this.elms.inputMsg.val().length === 0) {
+      return;
+    }
+
+    this._send({
+      type: 'say',
+      data: this.elms.inputMsg.val().slice(0, 140)
+    });
+    this.elms.inputMsg.val('');
+  };
+  Game.prototype.switchSide = function() {
+    this._send({
+      type: 'switchside'
+    });
+  };
 
    /*
    ws handlers
    */
+  Game.prototype.sockMessage = function(data) {
+    this['ws_' + data.type](data.data);
+  };
+
   Game.prototype.ws_players = function(data) {
-    this.status.updatePlayers(data);
+    this.status.players(data);
   };
 
   Game.prototype.ws_start = function(data) {
@@ -84,8 +100,8 @@ define([
       side: data.side,
       fen: data.fen,
       pgn: data.pgn,
-      onDragStart: $.proxy(onDragStart, this),
-      onDrop: $.proxy(onDrop, this)
+      onDragStart: this.onDragStart.bind(this),
+      onDrop: this.onDrop.bind(this)
     });
 
 
@@ -93,15 +109,11 @@ define([
 
     this.myVote = '';
 
-    this.status.writeHistory(this.board.chess.history({verbose:true}));
-    this.status.newSide(data.side);
-    this.status.turnAlert(data.side === this.board.chess.turn());
-    this.status.updatePlayers(data.count);
-    this.status.progress.start(data.side, data.endTurnTime);
+    this.status.start(data, this.board.chess.history({verbose:true}), this.board.chess.turn());
 
-    this.elms.switch_side.on('click', $.proxy(this.switchSide, this));
-    this.elms.inputMsg.on('keypress', $.proxy(this.sendMsg, this));
-    this.elms.sendMsg.on('click', $.proxy(this.sendMsg, this));
+    this.elms.switch_side.on('click', this.switchSide.bind(this));
+    this.elms.inputMsg.on('keypress', this.sendMsg.bind(this));
+    this.elms.sendMsg.on('click', this.sendMsg.bind(this));
     $(document).keydown(function() {
       $('#inputMsg').focus();
     });
@@ -115,32 +127,30 @@ define([
     this.myVote = '';
     this.votes({}); //clear votes
 
-    this.status.endTurn(data, Math.ceil(this.board.chess.history().length / 2), color);
-
-    if (result = this.board.checkGameOver()) {
-      this.status.gameOver(result);
-    } else {
-      this.status.turnAlert(this.board.orientation()[0] === this.board.chess.turn());
-    }
+    this.status.move(
+      data,
+      Math.ceil(this.board.chess.history().length / 2),
+      color,
+      this.board.orientation()[0],
+      this.board.checkGameOver()
+    );
   };
   Game.prototype.ws_switchside = function() {
     var newSide = this.board.orientation() === 'white' ? 'black' : 'white';
     this.board.orientation(newSide);
 
-    this.status.newSide(newSide[0]);
-    this.status.turnAlert(newSide[0] === this.board.chess.turn());
+    this.status.switchSide(newSide[0], this.board.orientation()[0], this.myVote);
     // TODO redrow votes
   };
   Game.prototype.ws_newgame = function(data) {
     this.board.newGame();
-    this.status.newGame();
-    this.status.turnAlert(this.board.orientation()[0] === this.board.chess.turn());
+    this.status.newGame(this.board.orientation()[0], data.endTurnTime);
   };
   Game.prototype.ws_say = function(data) {
-    this.status.writeMsg(data);
+    this.status.say(data);
   };
-  Game.prototype.ws_votes = function(votes) {
-    this.votes(votes, this.board.orientation(), this.myVote, this.status.getPlayers(this.board.chess.turn()));
+  Game.prototype.ws_votes = function(data) {
+    this.votes(data.votes, this.board.orientation(), this.myVote, data.totalVoters);
   };
   /*
   methods
@@ -150,25 +160,6 @@ define([
       data = JSON.stringify(data).replace(/\//g, '\\/');
     }
     this.sock.send(data);
-  };
-
-  Game.prototype.sendMsg = function(e) {
-    if ([1, 13].indexOf(e.which) === -1 || this.elms.inputMsg.val().length === 0) {
-      return;
-    }
-
-    this._send({
-      type: 'say',
-      data: this.elms.inputMsg.val().slice(0, 140)
-    });
-    this.elms.inputMsg.val('');
-  };
-
-
-  Game.prototype.switchSide = function() {
-    this._send({
-      type: 'switchside'
-    });
   };
 
 

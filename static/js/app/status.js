@@ -52,91 +52,116 @@ define([
       update.progress(this.side, (this.endTurnTime - new Date())/10/20);
     }
   };
-  var log = function(msg, css) {
+
+  function log(msg, css) {
     elms.log.append('<div class="' + (css || ' ') + '">' + msg + '</div>');
     // TODO scroll only if scroll in bottom
     elms.log.scrollTop(elms.log[0].scrollHeight);
-  };
-
-  var status = {};
-
-  status.turnAlert = function(turnOn) {
-    elms.your_move
-      .removeClass('muted')
-      .removeClass('text-error');
-    clearInterval(this.turnAlertTimer);
-
-    if (turnOn) {
-      elms.your_move
-        .addClass('text-error')
-        .html('Move!');
-      this.turnAlertTimer = setInterval(function() {
-        elms.your_move
-          .fadeOut('fast')
-          .fadeIn('fast');
-      }, 1000);
-    } else {
-      elms.your_move.stop();
-      elms.your_move
-        .addClass('muted')
-        .html('Wait.');
+  }
+  function writeHistory(history) {
+    var i = 1;
+    while (history.length) {
+      appendMoveToLog(history.shift().san, Math.ceil(i++ / 2), i%2 ? 'b' : 'w');
     }
-  };
-  status.writeMsg = function(data) {
-    var div = $('<div class="chat"></div>');
-    div.text(data.side + ': ' + data.msg);
-    elms.log.append(div);
-    elms.log.scrollTop(elms.log[0].scrollHeight);
-  };
-
-  status.newSide = function(side) {
-    log('You joined to ' + (side[0] === 'w' ? 'white' : 'black') + ' side', 'info');
-    update.side(side);
-  };
-  status.updatePlayers = function(data) {
-    update.count(data);
-  };
-  status.getPlayers = function(side) {
-    return elms.count[side][0].innerHTML;
-  };
-  status.endTurn = function(data, n, color) {
-    progress.start(color === 'w' ? 'b' : 'w', data.endTurnTime);
-
+  }
+  function appendMoveToLog(move, turnNumber, color) {
     if (color === 'b') {
       var last = elms.log.children().last();
       if (last.hasClass('move')) {
-        last.children().last().html(data.move).addClass('label-success');
+        last.children().last().text(move).addClass('label-success');
         return;
       }
     }
 
     var html = '';
-    html += '<span class="label">' + n + ':</span>';
-    html += ' <span class="label' + (color === 'w' ? ' label-success">' + data.move : '">...') + '</span>';
-    html += ' <span class="label' + (color === 'b' ? ' label-success">' + data.move : '">...') + '</span>';
+    html += '<span class="label">' + turnNumber + ':</span>';
+    html += ' <span class="label' + (color === 'w' ? ' label-success">' + move : '">...') + '</span>';
+    html += ' <span class="label' + (color === 'b' ? ' label-success">' + move : '">...') + '</span>';
 
     log(html, 'move');
-  };
-  status.newGame = function() {
-    progress.reset();
-    log('New game started', 'info');
-  };
-  status.gameOver = function(result) {
-    progress.reset();
-    log(result, 'warning');
-    log('will restart in 30s', 'info');
-    status.turnAlert(false);
-  };
-  status.writeHistory = function(history) {
-    var i = 1;
-    while (history.length) {
-      status.endTurn({move: history.shift().san}, Math.ceil(i++ / 2), i%2 ? 'b' : 'w');
+  }
+  function changeSide(side) {
+    log('You joined to ' + (side[0] === 'w' ? 'white' : 'black') + ' side', 'info');
+    update.side(side);
+  }
+  function turnAlert(turnOn) {
+    if (turnOn) {
+      elms.your_move
+        .removeClass('muted')
+        .addClass('text-error')
+        .html('Move!');
+    } else {
+      elms.your_move
+        .removeClass('text-error')
+        .addClass('muted')
+        .html('Wait.');
+    }
+  }
+
+
+  return {
+    start: function(data, history, turnColor) {
+      // write history
+      writeHistory(history);
+      // show side
+      changeSide(data.side);
+      // turn alert
+      turnAlert(data.side === turnColor);
+      // show players
+      update.count(data.count);
+      // start progress
+      progress.start(turnColor, data.endTurnTime);
+    },
+    newGame: function(orientation, endTurnTime) {
+      // start progress
+      progress.start(orientation, endTurnTime);
+      // turn alert
+      turnAlert(orientation === 'w');
+      // write log
+      log('New game started', 'info');
+    },
+    move: function(data, turnNumber, turnColor, orientation, gameover) {
+      // restart progress
+      progress.start(turnColor === 'w' ? 'b' : 'w', data.endTurnTime);
+      // turn alert
+      turnAlert(turnColor !== orientation);
+      // write log
+      appendMoveToLog(data.move, turnNumber, turnColor);
+      // check gameover
+      if (gameover) {
+        // stop progress
+        progress.reset();
+        // write logs
+        log(gameover, 'warning');
+        log('new game will start in 30s', 'info');
+        // turn alert
+        turnAlert(false);
+      }
+    },
+    players: function(data) {
+      // update players
+      update.count(data);
+    },
+    switchSide: function(side, orientation, voted) {
+      // rewrite side
+      changeSide(side);
+      // turn alert
+      turnAlert(side === orientation && voted === '');
+    },
+    say: function(data) {
+      //write msg
+      var div = $('<div class="chat"></div>');
+      div.text(data.side + ': ' + data.msg);
+      elms.log.append(div);
+      elms.log.scrollTop(elms.log[0].scrollHeight);
+    },
+    lostConnection: function() {
+      log('Connection lost', 'error');
+    },
+    voted: function() {
+      // turn alert
+      turnAlert(false);
     }
   };
-  status.lostConnection = function() {
-    log('Connection lost', 'error');
-  };
 
-  status.progress = progress;
-  return status;
 });

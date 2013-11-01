@@ -138,10 +138,10 @@ var game = {
 
     this.players[conn.id] = player;
   },
-  removePlayer: function(id) {
-    this.count[this.players[id].side]--;
-    this.votes.revoke(id);
-    delete this.players[id];
+  removePlayer: function(playerId) {
+    this.count[this.players[playerId].side]--;
+    this.votes.revoke(playerId);
+    delete this.players[playerId];
     this.broadcast({
       type: 'players',
       data: this.count
@@ -200,22 +200,22 @@ var game = {
   },
 
   broadcast: function(data) {
-    for (var key in this.players) {
-      if(this.players.hasOwnProperty(key)) {
-        this.players[key].write(data);
+    for (var playerId in this.players) {
+      if(this.players.hasOwnProperty(playerId)) {
+        this.players[playerId].write(data);
       }
     }
   },
-  ondata: function(id, data) {
+  ondata: function(playerId, data) {
     data = JSON.parse(data);
     if (data.type === 'say') {
-      this.say(data.data, this.players[id].side);
+      this.say(data.data, this.players[playerId].side);
     }
     if (data.type === 'vote') {
-      this.vote(data.data, id);
+      this.vote(data.data, playerId);
     }
     if (data.type === 'switchside') {
-      this.switchPlayerSide(id);
+      this.switchPlayerSide(playerId);
     }
 
   },
@@ -233,12 +233,15 @@ var game = {
     // TODO make proxy
     this.broadcast({
       type: 'votes',
-      data: this.votes.selectVoted()
+      data: {
+        votes: this.votes.selectVoted(),
+        totalVoters: this.count[this.players[playerId].side]
+      }
     });
     // TODO check if all players voted then makeMove, clear timeout
   },
-  switchPlayerSide: function(id) {
-    var player = this.players[id],
+  switchPlayerSide: function(playerId) {
+    var player = this.players[playerId],
       other = player.side=='w' ? 'b' : 'w';
     if (this.count[player.side] === 1) return;
 
@@ -246,7 +249,7 @@ var game = {
     this.count[other]++;
     player.side = other;
     // TODO resend votes
-    this.votes.revoke(id);
+    this.votes.revoke(playerId);
 
     player.write({
       type: 'switchside'
