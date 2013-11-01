@@ -217,7 +217,7 @@ var game = {
       type: 'say',
       data: {
         side: side,
-        msg: data
+        msg: data.slice(0, 140)
       }
     });
   },

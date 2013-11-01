@@ -159,7 +159,7 @@ define([
 
     this._send({
       type: 'say',
-      data: this.elms.inputMsg.val()
+      data: this.elms.inputMsg.val().slice(0, 140)
     });
     this.elms.inputMsg.val('');
   };

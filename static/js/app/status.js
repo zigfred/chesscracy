@@ -24,14 +24,14 @@ define([
       elms.progress[side].attr('style', 'width:' + progress + '%;');
     },
     count: function(count) {
-      elms.count.w.html(count.w);
-      elms.count.b.html(count.b);
+      elms.count.w.text(count.w);
+      elms.count.b.text(count.b);
     },
     gameStatus: function(status) {
-      elms.game_status.html(status);
+      elms.game_status.text(status);
     },
     side: function(side) {
-      elms.you_orientation.html('You are ' + (side[0] === 'w' ? 'White' : 'Black'));
+      elms.you_orientation.text('You are ' + (side[0] === 'w' ? 'White' : 'Black'));
     }
   };
   var progress = {
@@ -83,7 +83,10 @@ define([
     }
   };
   status.writeMsg = function(data) {
-    log(data.side + ': ' + data.msg, 'chat');
+    var div = $('<div class="chat"></div>');
+    div.text(data.side + ': ' + data.msg);
+    elms.log.append(div);
+    elms.log.scrollTop(elms.log[0].scrollHeight);
   };
 
   status.newSide = function(side) {
