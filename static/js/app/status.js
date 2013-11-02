@@ -55,7 +55,6 @@ define([
 
   function log(msg, css) {
     elms.log.append('<div class="' + (css || ' ') + '">' + msg + '</div>');
-    // TODO scroll only if scroll in bottom
     elms.log.scrollTop(elms.log[0].scrollHeight);
   }
   function writeHistory(history) {

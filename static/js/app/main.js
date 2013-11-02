@@ -50,7 +50,7 @@ define([
     var move = this.board.chess.move({
       from: source,
       to: target,
-      promotion: 'q' // TODO wrong way promotion
+      promotion: 'q'
     });
 
     if (move !== null) {
@@ -139,7 +139,6 @@ define([
     this.myVote = '';
 
     this.status.switchSide(newSide[0], this.board.chess.turn());
-    // TODO redrow votes
   };
   Game.prototype.ws_newgame = function(data) {
     this.board.newGame();
