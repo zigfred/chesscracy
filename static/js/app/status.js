@@ -142,11 +142,11 @@ define([
       // update players
       update.count(data);
     },
-    switchSide: function(side, orientation, voted) {
+    switchSide: function(side, orientation) {
       // rewrite side
       changeSide(side);
       // turn alert
-      turnAlert(side === orientation && voted === '');
+      turnAlert(side === orientation);
     },
     say: function(data) {
       //write msg

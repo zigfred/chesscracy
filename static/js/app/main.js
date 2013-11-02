@@ -138,8 +138,9 @@ define([
   Game.prototype.ws_switchside = function() {
     var newSide = this.board.orientation() === 'white' ? 'black' : 'white';
     this.board.orientation(newSide);
+    this.myVote = '';
 
-    this.status.switchSide(newSide[0], this.board.orientation()[0], this.myVote);
+    this.status.switchSide(newSide[0], this.board.chess.turn());
     // TODO redrow votes
   };
   Game.prototype.ws_newgame = function(data) {
@@ -150,6 +151,7 @@ define([
     this.status.say(data);
   };
   Game.prototype.ws_votes = function(data) {
+    console.log(data.votes)
     this.votes(data.votes, this.board.orientation(), this.myVote, data.totalVoters);
   };
   /*
