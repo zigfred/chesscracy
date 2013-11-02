@@ -140,7 +140,10 @@ var game = {
   },
   removePlayer: function(playerId) {
     this.count[this.players[playerId].side]--;
+
     this.votes.revoke(playerId);
+    this.sendVotes();
+
     delete this.players[playerId];
     this.broadcast({
       type: 'players',
@@ -230,15 +233,24 @@ var game = {
   },
   vote: function(vote, playerId) {
     if (!this.votes.vote(vote, playerId)) return;
-    // TODO make proxy
-    this.broadcast({
-      type: 'votes',
-      data: {
-        votes: this.votes.selectVoted(),
-        totalVoters: this.count[this.players[playerId].side]
-      }
-    });
     // TODO check if all players voted then makeMove, clear timeout
+
+    this.sendVotes();
+  },
+  sendVotes: function(fire) {
+
+    if (fire) {
+      this.broadcast({
+        type: 'votes',
+        data: {
+          votes: this.votes.selectVoted(),
+          totalVoters: this.count[this.chess.turn()]
+        }
+      });
+    } else {
+      setTimeout(this.sendVotes.bind(this, true), 100);
+    }
+
   },
   switchPlayerSide: function(playerId) {
     var player = this.players[playerId],
@@ -248,8 +260,9 @@ var game = {
     this.count[player.side]--;
     this.count[other]++;
     player.side = other;
-    // TODO resend votes
+
     this.votes.revoke(playerId);
+    this.sendVotes();
 
     player.write({
       type: 'switchside'
