@@ -31,6 +31,7 @@ Player.prototype.write = function(data) {
 function Votes() {
   this.votes = {};
   this.players = {};
+  this.totalVoters = 0;
 }
 /**
  * clear votes and players, and fill votes object by possibly moves
@@ -51,6 +52,7 @@ Votes.prototype.fill = function(moves) {
 Votes.prototype.reset = function() {
   this.votes = {};
   this.players = {};
+  this.totalVoters = 0;
 };
 /**
  * select moves with votes
@@ -75,7 +77,34 @@ Votes.prototype.vote = function(san, playerId) {
   if (!(san in this.votes) || (playerId in this.players)) return false;
   this.players[playerId] = san;
   this.votes[san].times++;
+  this.totalVoters++;
   return true;
+};
+/**
+ * calc votes relative players for allow elections
+ * if unpulled players can not change elections result - allow election
+ *
+ * @param totalPlayers
+ *
+ * @returns {boolean}
+ */
+Votes.prototype.checkMajority = function(totalPlayers) {
+  // check if all players voted
+  if (totalPlayers === this.totalVoters) return true;
+
+  var arr = [];
+
+  for (var san in this.votes) {
+    if (this.votes.hasOwnProperty(san)) {
+      if (this.votes[san].times > 0) arr.push([san, this.votes[san].times]);
+    }
+  }
+  arr.sort(function(a, b) { return b[1] - a[1] });
+
+  // calc lead with checking defined data (if there no votes or only one move voted)
+  var lead = (arr[0] && arr[0][1] || 0) - (arr[1] && arr[1][1] || 0);
+
+  return (lead > totalPlayers - this.totalVoters);
 };
 /**
  * countdown vote for move, and remove player from list of players that already voted
@@ -84,6 +113,7 @@ Votes.prototype.vote = function(san, playerId) {
 Votes.prototype.revoke = function(playerId) {
   if (this.players[playerId] && this.votes[this.players[playerId]]) {
     this.votes[this.players[playerId]].times--;
+    this.totalVoters--;
     delete this.players[playerId];
   }
 };
@@ -233,9 +263,13 @@ var game = {
   },
   vote: function(vote, playerId) {
     if (!this.votes.vote(vote, playerId)) return;
-    // TODO check if all players voted then makeMove, clear timeout
 
-    this.sendVotes();
+    if (this.votes.checkMajority(this.count[this.chess.turn()])) {
+      clearTimeout(this.electionTimeout);
+      this.makeMove();
+    } else {
+      this.sendVotes();
+    }
   },
   sendVotes: function(fire) {
 
