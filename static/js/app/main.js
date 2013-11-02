@@ -43,8 +43,7 @@ define([
     return !(
         this.board.chess.game_over() === true ||
         piece[0] !== orientation[0] ||
-        this.board.chess.turn() !== orientation[0] ||
-        this.myVote !== ''
+        this.board.chess.turn() !== orientation[0]
       );
   };
   Game.prototype.onDrop = function(source, target) {
@@ -61,7 +60,6 @@ define([
       });
       this.myVote = move.san;
       this.board.chess.undo();
-      this.status.voted();
     }
     return 'snapback';
   };
@@ -151,7 +149,6 @@ define([
     this.status.say(data);
   };
   Game.prototype.ws_votes = function(data) {
-    console.log(data.votes)
     this.votes(data.votes, this.board.orientation(), this.myVote, data.totalVoters);
   };
   /*

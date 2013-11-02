@@ -89,7 +89,7 @@ define([
       elms.your_move
         .removeClass('muted')
         .addClass('text-error')
-        .html('Move!');
+        .html('Vote!');
     } else {
       elms.your_move
         .removeClass('text-error')
@@ -157,10 +157,6 @@ define([
     },
     lostConnection: function() {
       log('Connection lost', 'error');
-    },
-    voted: function() {
-      // turn alert
-      turnAlert(false);
     }
   };
 

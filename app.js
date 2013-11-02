@@ -69,12 +69,20 @@ Votes.prototype.selectVoted = function() {
 };
 /**
  * save vote and player id
+ * or revoke old vote and save new
  * @param san {String} san of move for vote
  * @param playerId {String} voter's id
- * @returns {boolean} return false if player already voted or if move is not possible
+ * @returns {boolean} return false if player already voted for this move
+ *                    or if move is not possible
  */
 Votes.prototype.vote = function(san, playerId) {
-  if (!(san in this.votes) || (playerId in this.players)) return false;
+  if (!(san in this.votes)) return false;
+
+  if (playerId in this.players) {
+    if (this.players[playerId] === san) return false;
+    this.revoke(playerId);
+  }
+
   this.players[playerId] = san;
   this.votes[san].times++;
   this.totalVoters++;
