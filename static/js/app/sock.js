@@ -6,11 +6,9 @@ define([
     var sock = new sockjs('/game');
 
     sock.onopen = function() {
-      console.log('open');
     };
 
     sock.onclose = function() {
-      console.log('close');
       onclose();
     };
 
