@@ -53,6 +53,11 @@
                     </div>
                 </li>
             </ul>
+            <ul class="nav pull-right">
+                <li>
+                    <button type="button" class="btn" data-toggle="modal" data-target="#modalHelp">Help</button>
+                </li>
+            </ul>
         </div>
     </div>
     <div class="row">
@@ -73,6 +78,38 @@
         </div>
     </div>
 
+</div>
+<div id="modalHelp" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3 id="myModalLabel">ChessCracy</h3>
+    </div>
+    <div class="modal-body">
+        <p>Vote for move!</p>
+        <p>
+            Голосуй за ход! В конце каждого хода подсчитываются
+            голоса, и выбирается самый популярный ход.
+        </p>
+        <ul>
+            <li>Игра идет без остановок, даже если нет ни одного игрока.</li>
+            <li>Голосование длится 20 секунд</li>
+            <li>Голосование может закончится раньше, если количество
+                непроголосовавших уже не смогут повлиять на результаты.</li>
+            <li>Если нет ни одного голоса за ход - в конце 20-ти секундного периода
+                сервер сам выберет ход из возможных
+                случайным образом (скорее всего это будет ужасный ход).</li>
+            <li>В любой момент можно переголосовать.</li>
+            <li>В любой момент можно перейти на другую сторону.</li>
+            <li>В конце партии будет 30-секундная пауза, после которой начнется новая игра.</li>
+        </ul>
+        <p>
+            Приглашай электорат! Одна голова хорошо...
+            Больше народа - сильнее ходы!! ("миллионы мух не могут ошибаться" &#169; )
+        </p>
+    </div>
+    <div class="modal-footer">
+        <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+    </div>
 </div>
 </body>
 </html>
