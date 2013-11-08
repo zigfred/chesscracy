@@ -319,6 +319,7 @@ game.makeMoveBinded = game.makeMove.bind(game);
 
 game.init();
 
+
 echo.on('connection', function(conn) {
   game.addPlayer(conn);
   conn.on('data', function(data){
