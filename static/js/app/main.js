@@ -22,6 +22,8 @@ define([
       inputMsg: $('#inputMsg'),
       sendMsg: $('#sendMsg')
     };
+    // local time shift relative to server time. will calc in ws_move
+    this.localTimeShift = 0;
 
     // sizing
     var size = parseInt(this.elms.board.css('width'), 10);
@@ -118,9 +120,7 @@ define([
 
   };
   Game.prototype.ws_move = function(data) {
-    console.log(" now: ", +new Date());
-    console.log("next diff: ", (new Date() - data.endTurnTime))
-    console.log("next: ", data.endTurnTime)
+    this.localTimeShift = new Date() - data.endTurnTime + 20000;
     var result = false,
       color = this.board.chess.turn();
     this.board.chess.move(data.move);
@@ -133,7 +133,8 @@ define([
       Math.ceil(this.board.chess.history().length / 2),
       color,
       this.board.orientation()[0],
-      this.board.checkGameOver()
+      this.board.checkGameOver(),
+      this.localTimeShift
     );
   };
   Game.prototype.ws_switchside = function() {

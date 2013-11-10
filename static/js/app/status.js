@@ -119,9 +119,10 @@ define([
       // write log
       log('New game started', 'info');
     },
-    move: function(data, turnNumber, turnColor, orientation, gameover) {
+    move: function(data, turnNumber, turnColor, orientation, gameover, localTimeShift) {
+      log(localTimeShift, 'info');
       // restart progress
-      progress.start(turnColor === 'w' ? 'b' : 'w', data.endTurnTime);
+      progress.start(turnColor === 'w' ? 'b' : 'w', data.endTurnTime-localTimeShift);
       // turn alert
       turnAlert(turnColor !== orientation);
       // write log
