@@ -118,6 +118,9 @@ define([
 
   };
   Game.prototype.ws_move = function(data) {
+    console.log(" now: ", +new Date());
+    console.log("next diff: ", (new Date() - data.endTurnTime))
+    console.log("next: ", data.endTurnTime)
     var result = false,
       color = this.board.chess.turn();
     this.board.chess.move(data.move);
