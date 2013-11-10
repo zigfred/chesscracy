@@ -8,9 +8,7 @@
 	},
 	"dependencies": {
 		"express": "~3",
-		"async": "~0.2",
 		"chess.js": "~0.1",
-		"sockjs": "~0.3",
-    "extend": "~1"
+		"sockjs": "~0.3"
 	}
 }
