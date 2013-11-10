@@ -2,7 +2,10 @@ requirejs.config({
   "baseUrl": "js/lib",
   "paths": {
     "app": "../app",
-    "jquery": "jquery-2.0.3.min",
+    "jquery": [
+      "//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js",
+      "jquery-2.0.3.min"
+    ],
     "sockjs": [
       "//cdn.sockjs.org/sockjs-0.3.min",
       'sockjs-0.3.min'
