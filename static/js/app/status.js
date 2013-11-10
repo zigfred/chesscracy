@@ -122,7 +122,7 @@ define([
     move: function(data, turnNumber, turnColor, orientation, gameover, localTimeShift) {
       log(localTimeShift, 'info');
       // restart progress
-      progress.start(turnColor === 'w' ? 'b' : 'w', data.endTurnTime-localTimeShift);
+      progress.start(turnColor === 'w' ? 'b' : 'w', data.endTurnTime+localTimeShift);
       // turn alert
       turnAlert(turnColor !== orientation);
       // write log
