@@ -332,10 +332,8 @@ echo.on('connection', function(conn) {
 
 echo.installHandlers(server, {prefix:'/game'});
 
-app.use(express.static('static', {maxAge: 2592000000}));
+app.use(express.compress());
+app.use(express.static('static-build', {maxAge: 1000 * 60 * 60 * 24}));
 
-app.get('/', function(req, res){
-  res.send('Hello World');
-});
 
 server.listen(process.env.PORT || 3000);

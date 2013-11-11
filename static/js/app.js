@@ -1,18 +1,11 @@
 requirejs.config({
-  "baseUrl": "js/lib",
+  "baseUrl": "/js",
   "paths": {
-    "app": "../app",
-    "jquery": [
-      "//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js",
-      "jquery-2.0.3.min"
-    ],
-    "sockjs": [
-      "//cdn.sockjs.org/sockjs-0.3.min",
-      'sockjs-0.3.min'
-    ],
-    "ChessBoard": "chessboard-0.3.0",
-    "bootstrap": "bootstrap",
-    "Chess": "chess"
+    "jquery": "lib/jquery-2.0.3",
+    "sockjs": 'lib/sockjs-0.3.min',
+    "ChessBoard": "lib/chessboard-0.3.0",
+    "bootstrap": "lib/bootstrap",
+    "Chess": "lib/chess"
   },
   "shim": {
     "bootstrap": ["jquery"]
