@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>ChessCracy</title>
+    <title>ChessCracy. Crowd voting for the right move.</title>
+    <meta name="description" content="Chess game for unlimited players simultaneously. You should vote
+    for the move to move your team to the victory.">
+    <meta name="keywords" content="chess, game, online, multiplayer, blitz, cracy, vote">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/main.css">
 
@@ -79,32 +82,73 @@
 <div id="modalHelp" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h3 id="myModalLabel">ChessCracy</h3>
+        <ul class="nav nav-tabs" id="helpTab">
+            <li class="active"><a href="#help-en">English</a></li>
+            <li><a href="#help-ru">Русский</a></li>
+        </ul>
     </div>
     <div class="modal-body">
-        <p>Vote for move!</p>
-        <p>
-            Голосуй за ход! В конце каждого хода подсчитываются
-            голоса, и выбирается самый популярный ход.
-        </p>
-        <ul>
-            <li>Игра идет без остановок, даже если нет ни одного игрока.</li>
-            <li>Голосование длится 20 секунд</li>
-            <li>Голосование может закончится раньше, если количество
-                непроголосовавших уже не смогут повлиять на результаты.</li>
-            <li>Если нет ни одного голоса за ход - в конце 20-ти секундного периода
-                сервер сам выберет ход из возможных
-                случайным образом (скорее всего это будет ужасный ход).</li>
-            <li>В любой момент можно переголосовать.</li>
-            <li>В любой момент можно перейти на другую сторону.</li>
-            <li>В конце партии будет 30-секундная пауза, после которой начнется новая игра.</li>
-        </ul>
-        <p>
-            Приглашай электорат! Одна голова хорошо...
-            Больше народа - сильнее ходы!! ("миллионы мух не могут ошибаться" &#169; )
-        </p>
+
+        <div class="tab-content">
+            <div class="tab-pane active" id="help-en">
+                <p>Vote for the move!</p>
+                <p>
+                    At the end of each move all votes are
+                    counted and the most popular is chosen.
+                </p>
+                <ul>
+                    <li>The game runs without stops, even if there are no players.</li>
+                    <li>The voting lasts 20 seconds.</li>
+                    <li>
+                        The voting can be stopped earlier if the amount of
+                        non-voted participants cannot affect on the result anymore.</li>
+                    <li>
+                        If there are no votes for the move then at the end of 20 seconds
+                        time period the server will choose one move from all
+                        possible ones randomly (most likely it would be the worse move)
+                    </li>
+                    <li>You can change your decision any moment and vote again</li>
+                    <li>You can come to another side any moment</li>
+                    <li>At the end of the game there is a 30 seconds pause and then a new game starts!</li>
+                </ul>
+                <p>
+                    Engage more voters!
+                    The more team-members the smarter are moves!
+                </p>
+
+            </div>
+            <div class="tab-pane" id="help-ru">
+                <p>Голосуй за ход!</p>
+                <p>
+                     В конце каждого хода подсчитываются
+                    голоса, и выбирается самый популярный ход.
+                </p>
+                <ul>
+                    <li>Игра идет без остановок, даже если нет ни одного игрока.</li>
+                    <li>Голосование длится 20 секунд</li>
+                    <li>Голосование может закончится раньше, если количество
+                        непроголосовавших уже не смогут повлиять на результаты.</li>
+                    <li>Если нет ни одного голоса за ход - в конце 20-ти секундного периода
+                        сервер сам выберет ход из возможных
+                        случайным образом (скорее всего это будет ужасный ход).</li>
+                    <li>В любой момент можно переголосовать.</li>
+                    <li>В любой момент можно перейти на другую сторону.</li>
+                    <li>В конце партии будет 30-секундная пауза, после которой начнется новая игра.</li>
+                </ul>
+                <p>
+                    Приглашай электорат!
+                    Больше народа - сильнее ходы!!
+                </p>
+            </div>
+        </div>
+
     </div>
     <div class="modal-footer">
+
+        <blockquote class="pull-left">
+            <p>Miliony much nie mogą się mylić</p>
+            <small>Stanisław Jerzy Lec</small>
+        </blockquote>
         <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
     </div>
 </div>

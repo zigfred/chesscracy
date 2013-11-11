@@ -22,6 +22,11 @@ define([
       inputMsg: $('#inputMsg'),
       sendMsg: $('#sendMsg')
     };
+    $("#helpTab a").click(function (e) {
+      e.preventDefault();
+      $(this).tab('show');
+    });
+
     // local time shift relative to server time. will calc in ws_move
     this.localTimeShift = 0;
 
