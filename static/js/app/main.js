@@ -99,7 +99,7 @@ define([
   };
 
   Game.prototype.ws_start = function(data) {
-
+console.log(data.env)
     this.board = board({
       el: this.elms.board,
       side: data.side,
