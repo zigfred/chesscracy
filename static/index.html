@@ -51,6 +51,9 @@
             </ul>
             <ul class="nav pull-right">
                 <li>
+                    <button type="button" class="btn" data-toggle="modal" data-target="#modalAbout">About</button>
+                </li>
+                <li>
                     <button type="button" class="btn" data-toggle="modal" data-target="#modalHelp">Help</button>
                 </li>
             </ul>
@@ -116,7 +119,7 @@
             <div class="tab-pane" id="help-ru">
                 <p>Голосуй за ход!</p>
                 <p>
-                     В конце каждого хода подсчитываются
+                    В конце каждого хода подсчитываются
                     голоса, и выбирается самый популярный ход.
                 </p>
                 <ul>
@@ -140,7 +143,6 @@
 
     </div>
     <div class="modal-footer">
-
         <blockquote class="pull-left">
             <p>Miliony much nie mogą się mylić</p>
             <small>Stanisław Jerzy Lec</small>
@@ -148,6 +150,20 @@
         <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
     </div>
 </div>
+
+<div id="modalAbout" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3>ChessCracy</h3>
+    </div>
+    <div class="modal-body">
+        <a href="mailto:zigfredead@gmail.com?subject=ChessCracy">zigfred</a>
+    </div>
+    <div class="modal-footer">
+        <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+    </div>
+</div>
+
 <script>
     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
         (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
