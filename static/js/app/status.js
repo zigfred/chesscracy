@@ -44,11 +44,11 @@ define([
       this.reset();
       this.endTurnTime = new Date(endTurnTime);
       this.side = side;
-      update.progress(side, (this.endTurnTime - new Date())/10/20);
+      update.progress(side, (this.endTurnTime - new Date()) / 10 / this.vTime * 1000);
       this.intervalId = setInterval(this.downProgress.bind(this), 200);
     },
     downProgress: function() {
-      update.progress(this.side, (this.endTurnTime - new Date())/10/20);
+      update.progress(this.side, (this.endTurnTime - new Date()) / 10 / this.vTime * 1000);
     }
   };
 
@@ -110,6 +110,7 @@ define([
       // show players
       update.count(data.count);
       // start progress
+      progress.vTime = data.vTime || 20 * 1000;
       progress.start(turnColor, data.endTurnTime);
     },
     newGame: function(orientation, endTurnTime) {
@@ -122,7 +123,7 @@ define([
     },
     move: function(data, turnNumber, turnColor, orientation, gameover, localTimeShift) {
       // restart progress
-      progress.start(turnColor === 'w' ? 'b' : 'w', data.endTurnTime+localTimeShift);
+      progress.start(turnColor === 'w' ? 'b' : 'w', data.endTurnTime + localTimeShift + progress.vTime);
       // turn alert
       turnAlert(turnColor !== orientation);
       // write log

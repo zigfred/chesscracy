@@ -125,7 +125,7 @@ define([
 
   };
   Game.prototype.ws_move = function(data) {
-    this.localTimeShift = new Date() - data.endTurnTime + 20000;
+    this.localTimeShift = new Date() - data.endTurnTime;
     var result = false,
       color = this.board.chess.turn();
     this.board.chess.move(data.move);

@@ -166,7 +166,8 @@ var game = {
         pgn: this.chess.pgn(),
         side: player.side,
         count: this.count,
-        endTurnTime: this.endTurnTime
+        endTurnTime: this.endTurnTime,
+        vTime: this.vTime
       }
     });
 
