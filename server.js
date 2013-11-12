@@ -161,6 +161,7 @@ var game = {
     player.write({
       type: 'start',
       data: {
+        env: process.env,
         fen: this.chess.fen(),
         pgn: this.chess.pgn(),
         side: player.side,
