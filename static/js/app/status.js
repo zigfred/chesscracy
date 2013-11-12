@@ -5,7 +5,6 @@ define([
 
   var elms = {
     log: $('#log'),
-    game_status: $('#game_status'),
     progress: {
       w: $('#progress_move_w'),
       b: $('#progress_move_b')
