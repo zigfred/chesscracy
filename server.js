@@ -334,7 +334,9 @@ echo.on('connection', function(conn) {
 echo.installHandlers(server, {prefix:'/game'});
 
 app.use(express.compress());
-app.use(express.static('static-build', {maxAge: 1000 * 60 * 60 * 24}));
+
+var staticDir = 'static' + (process.env.NODE_ENV === 'development' ? '' : '-build');
+app.use(express.static(staticDir, {maxAge: 1000 * 60 * 60 * 24}));
 
 
 server.listen(process.env.PORT || 3000);
