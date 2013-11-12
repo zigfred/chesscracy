@@ -63,6 +63,8 @@ define([
     }
   }
   function appendMoveToLog(move, turnNumber, color) {
+    // disable move logging
+    return;
     if (color === 'b') {
       var last = elms.log.children().last();
       if (last.hasClass('move')) {
