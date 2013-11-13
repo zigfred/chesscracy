@@ -28,13 +28,22 @@ define(function() {
       el = document.getElementById(id),
       svgElem = createSvgEl("svg"),
       defs = createSvgEl("defs"),
-      marker = createSvgEl("marker"),
-      markerGreen = createSvgEl("marker"),
-      mpath = createSvgEl("path"),
-      mpathGreen = createSvgEl("path"),
 
-      colorMine = '#3D9140',
-      colorAll = '#888',
+      markerAll = createSvgEl("marker"),
+      markerMine = createSvgEl("marker"),
+      markerMax = createSvgEl("marker"),
+      mpathAll = createSvgEl("path"),
+      mpathMine = createSvgEl("path"),
+      mpathMax = createSvgEl("path"),
+
+    /*
+      green 3D9140, gray 888, red
+       */
+      COLOR = {
+        'All': '#888',
+        'Mine': '#888',
+        'Max': '#3D9140'
+      },
 
       sizeSquare = (size / 8),
       sizeSquareHalf = (size / 8 / 2),
@@ -47,11 +56,12 @@ define(function() {
       width: size,
       height: size
     });
-    setAttr(mpath, mpathAttr);
-    setAttr(mpathGreen, mpathAttr);
+    setAttr(mpathAll, mpathAttr);
+    setAttr(mpathMine, mpathAttr);
+    setAttr(mpathMax, mpathAttr);
 
-    setAttr(marker, {
-      id: 'ArrowHead',
+    setAttr(markerAll, {
+      id: 'ArrowHeadAll',
       viewBox: '0 0 10 10',
       refX: 0,
       refY: 5,
@@ -59,10 +69,10 @@ define(function() {
       markerWidth: 4,
       markerHeight: 3,
       orient: 'auto',
-      fill: colorAll
+      fill: COLOR['All']
     });
-    setAttr(markerGreen, {
-      id: 'ArrowHeadGreen',
+    setAttr(markerMine, {
+      id: 'ArrowHeadMine',
       viewBox: '0 0 10 10',
       refX: 0,
       refY: 5,
@@ -70,14 +80,27 @@ define(function() {
       markerWidth: 4,
       markerHeight: 3,
       orient: 'auto',
-      fill: colorMine
+      fill: COLOR['Mine']
+    });
+    setAttr(markerMax, {
+      id: 'ArrowHeadMax',
+      viewBox: '0 0 10 10',
+      refX: 0,
+      refY: 5,
+      markerUnits: 'strokeWidth',
+      markerWidth: 4,
+      markerHeight: 3,
+      orient: 'auto',
+      fill: COLOR['Max']
     });
 
     append(svgElem, defs);
-    append(markerGreen, mpathGreen);
-    append(marker, mpath);
-    append(defs, markerGreen);
-    append(defs, marker);
+    append(markerAll, mpathAll);
+    append(markerMine, mpathMine);
+    append(markerMax, mpathMax);
+    append(defs, markerAll);
+    append(defs, markerMine);
+    append(defs, markerMax);
     append(el, svgElem);
 
     /**
@@ -166,6 +189,9 @@ define(function() {
       // calc weight of votes
       // TODO need smart calc
       var width = ~~vote.times / totalVoters * 4 + 1;
+      if (totalVoters > 200) {
+        vote.times = parseInt(vote.times / totalVoters * 100, 10) + '%';
+      }
 
       return {
         x1: Math.round(fromX),
@@ -184,16 +210,18 @@ define(function() {
      * draw arrow for vote
      *
      * @param attr
+     * @param first - is max votes count or not
      */
-    function drawVote(attr) {
+    function drawVote(attr, first) {
+      var type = first ? 'Max' : attr.mine ? 'Mine' : 'All';
       var g = createSvgEl("g");
       var path = createSvgEl("path");
       setAttr(path, {
         d: 'M ' + attr.x1 + ' ' + attr.y1 + ' L ' + attr.x2 + ' ' + attr.y2,
         fill: 'none',
-        stroke: attr.mine ? colorMine : colorAll,
+        stroke: COLOR[type],
         'stroke-width': (attr.stroke || 1),
-        'marker-end': 'url(#ArrowHead' + (attr.mine ? 'Green' : '') + ')'
+        'marker-end': 'url(#ArrowHead' + type + ')'
         //'stroke-dasharray': '15,5'
       });
       append(g, path);
@@ -208,7 +236,7 @@ define(function() {
         y: attr.tY,
         'text-anchor': 'middle',
         'alignment-baseline': 'middle',
-        'font-size': 13,
+        'font-size': 11,
         'fill': "black",
         'font-weight': 'bold'
       });
@@ -243,7 +271,7 @@ define(function() {
         return a.stroke < b.stroke;
       });
       for (var i = 0, l = arrowsAttr.length; i<l; i++) {
-        drawVote(arrowsAttr[i]);
+        drawVote(arrowsAttr[i], i===0);
       }
       for (var i = 0, l = arrowsAttr.length; i<l; i++) {
         drawVotersCount(arrowsAttr[i]);
