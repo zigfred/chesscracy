@@ -33,6 +33,9 @@ define(function() {
       mpath = createSvgEl("path"),
       mpathGreen = createSvgEl("path"),
 
+      colorMine = '#3D9140',
+      colorAll = '#888',
+
       sizeSquare = (size / 8),
       sizeSquareHalf = (size / 8 / 2),
       sizeShift = (size / 8 / 2 * 0.96),
@@ -56,7 +59,7 @@ define(function() {
       markerWidth: 4,
       markerHeight: 3,
       orient: 'auto',
-      fill: 'gray'
+      fill: colorAll
     });
     setAttr(markerGreen, {
       id: 'ArrowHeadGreen',
@@ -67,7 +70,7 @@ define(function() {
       markerWidth: 4,
       markerHeight: 3,
       orient: 'auto',
-      fill: 'green'
+      fill: colorMine
     });
 
     append(svgElem, defs);
@@ -185,25 +188,31 @@ define(function() {
     function drawVote(attr) {
       var g = createSvgEl("g");
       var path = createSvgEl("path");
-      var text = createSvgEl("text");
       setAttr(path, {
         d: 'M ' + attr.x1 + ' ' + attr.y1 + ' L ' + attr.x2 + ' ' + attr.y2,
         fill: 'none',
-        stroke: attr.mine ? 'green' : 'gray',
+        stroke: attr.mine ? colorMine : colorAll,
         'stroke-width': (attr.stroke || 1),
         'marker-end': 'url(#ArrowHead' + (attr.mine ? 'Green' : '') + ')'
+        //'stroke-dasharray': '15,5'
       });
+      append(g, path);
+      append(svgElem, g);
+      arrows.push(g);
+    }
+    function drawVotersCount(attr) {
+      var g = createSvgEl("g");
+      var text = createSvgEl("text");
       setAttr(text, {
         x: attr.tX,
         y: attr.tY,
         'text-anchor': 'middle',
         'alignment-baseline': 'middle',
-        'font-size': 10,
+        'font-size': 13,
         'fill': "black",
         'font-weight': 'bold'
       });
       append(text, document.createTextNode(attr.text));
-      append(g, path);
       append(g, text);
       append(svgElem, g);
       arrows.push(g);
@@ -220,13 +229,24 @@ define(function() {
      */
 
     return function (votes, orientation, myVote, totalVoters) {
+      var arrowsAttr = [];
       while (arrows.length) {
         svgElem.removeChild(arrows.pop());
       }
       for (var k in votes) {
         if (votes.hasOwnProperty(k)) {
-          drawVote(calcVotePosition(k, votes[k], orientation, myVote, totalVoters));
+          arrowsAttr.push(calcVotePosition(k, votes[k], orientation, myVote, totalVoters));
         }
+      }
+
+      arrowsAttr.sort(function(a, b) {
+        return a.stroke < b.stroke;
+      });
+      for (var i = 0, l = arrowsAttr.length; i<l; i++) {
+        drawVote(arrowsAttr[i]);
+      }
+      for (var i = 0, l = arrowsAttr.length; i<l; i++) {
+        drawVotersCount(arrowsAttr[i]);
       }
 
     };
