@@ -22,6 +22,7 @@ define([
       inputMsg: $('#inputMsg'),
       sendMsg: $('#sendMsg')
     };
+    $(document).on('click', ':button.savePgn', this.savePgn.bind(this));
     $("#helpTab a").click(function (e) {
       e.preventDefault();
       $(this).tab('show');
@@ -86,6 +87,17 @@ define([
       type: 'switchside'
     });
   };
+  Game.prototype.savePgn = function(e) {
+    if (!confirm("Use it only for epic games. Are you sure want save this game?")) return;
+    var btn = $(e.currentTarget);
+    btn.attr('disabled', true);
+    this._send({
+      type: 'savepgn',
+      data: {
+        pgn: btn.data('pgn')
+      }
+    });
+  };
 
    /*
    ws handlers
@@ -133,14 +145,16 @@ define([
     this.myVote = '';
     this.votes({}); //clear votes
 
-    this.status.move(
-      data,
-      Math.ceil(this.board.chess.history().length / 2),
-      color,
-      this.board.orientation()[0],
-      this.board.checkGameOver(),
-      this.localTimeShift
-    );
+    this.status.move({
+      endTurnTime: data.endTurnTime,
+      move: data.move,
+      turnNumber: Math.ceil(this.board.chess.history().length / 2),
+      turnColor: color,
+      orientation: this.board.orientation()[0],
+      gameover: this.board.checkGameOver(),
+      pgn: this.board.chess.pgn(),
+      localTimeShift: this.localTimeShift
+    });
   };
   Game.prototype.ws_switchside = function() {
     var newSide = this.board.orientation() === 'white' ? 'black' : 'white';
@@ -158,6 +172,9 @@ define([
   };
   Game.prototype.ws_votes = function(data) {
     this.votes(data.votes, this.board.orientation(), this.myVote, data.totalVoters);
+  };
+  Game.prototype.ws_pgnlink = function(data) {
+    this.status.updatePgnLink(data);
   };
   /*
   methods

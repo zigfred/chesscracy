@@ -2,7 +2,8 @@
 var express = require('express');
 var app = express();
 var sockjs = require('sockjs');
-var server = require('http').createServer(app);
+var http = require('http');
+var server = http.createServer(app);
 var ch =  require('chess.js');
 var echo = sockjs.createServer();
 
@@ -146,6 +147,7 @@ Votes.prototype.calcWinner = function() {
 var game = {
   init: function() {
     this.players = {};
+    this.pgnSaved = {};
     this.votes = new Votes();
     this.count = { w: 0, b: 0};
     this.vTime = 20 * 1000; // max time for voting in milliseconds
@@ -241,6 +243,70 @@ var game = {
       }
     });
   },
+  savePgn: function(data) {
+    if (this.chess.game_over() && !(data.pgn in this.pgnSaved)) {
+    this.pgnSaved[data.pgn] = true;
+    var self = this;
+      var content = 'apikey=e565c5362c8f770be9f362dc4a23138289f9e139'
+      + '&name=ChessCracy'
+      + '&validate=true'
+      + '&pgn=' + data.pgn;
+      //content += '&sandbox=true'; // test pushing
+
+      var options = {
+        hostname: 'www.chesspastebin.com',
+        port: 80,
+        path: '/api/add/index.php',
+        method: 'POST',
+        headers: {
+          "User-Agent": "NodeJS Pusher",
+          "Content-Type": "application/x-www-form-urlencoded",
+          "Connection": "close",
+          "Keep-Alive": "",
+          "Accept": "text/json",
+          "Accept-Charset": "UTF8",
+          "Content-length": content.length
+        }
+      };
+
+      var req = http.request(options, function(res) {
+        res.setEncoding('utf8');
+        res.on('data', function (chunk) {
+          if (isNaN(+chunk) || res.statusCode !== 200 ) {
+            self.broadcast({
+              type: 'pgnlink',
+              data: {
+                pgn: data.pgn,
+                error: chunk,
+                status: res.statusCode
+              }
+            });
+          } else {
+            self.broadcast({
+              type: 'pgnlink',
+              data: {
+                pgn: data.pgn,
+                id: chunk
+              }
+            });
+          }
+          self.pgnSaved[data.pgn] = chunk;
+        });
+      });
+      req.on('error', function(e) {
+        self.broadcast({
+          type: 'pgnlink',
+          data: {
+            pgn: data.pgn,
+            error: e.message
+          }
+        });
+        self.pgnSaved[data.pgn] = e.message;
+      });
+
+      req.end(content, 'utf8');
+    }
+  },
 
   broadcast: function(data) {
     for (var playerId in this.players) {
@@ -259,6 +325,9 @@ var game = {
     }
     if (data.type === 'switchside') {
       this.switchPlayerSide(playerId);
+    }
+    if (data.type === 'savepgn') {
+      this.savePgn(data.data);
     }
 
   },

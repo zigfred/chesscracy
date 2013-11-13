@@ -121,19 +121,25 @@ define([
       // write log
       log('New game started', 'info');
     },
-    move: function(data, turnNumber, turnColor, orientation, gameover, localTimeShift) {
+    move: function(data) {
       // restart progress
-      progress.start(turnColor === 'w' ? 'b' : 'w', data.endTurnTime + localTimeShift + progress.vTime);
+      progress.start(
+        data.turnColor === 'w' ? 'b' : 'w',
+        data.endTurnTime + data.localTimeShift + progress.vTime
+      );
       // turn alert
-      turnAlert(turnColor !== orientation);
+      turnAlert(data.turnColor !== data.orientation);
       // write log
-      appendMoveToLog(data.move, turnNumber, turnColor);
+      appendMoveToLog(data.move, data.turnNumber, data.turnColor);
       // check gameover
-      if (gameover) {
+      if (data.gameover) {
         // stop progress
         progress.reset();
         // write logs
-        log(gameover, 'warning');
+        log(data.gameover, 'warning');
+        var btn = '<button data-pgn="' + data.pgn
+          + '" type="button" class="btn savePgn" >Save pgn</button>';
+        elms.log.append(btn);
         log('new game will start in 30s', 'info');
         // turn alert
         turnAlert(false);
@@ -148,6 +154,17 @@ define([
       changeSide(side);
       // turn alert
       turnAlert(side === orientation);
+    },
+    updatePgnLink: function(data) {
+      if (typeof data.error !== 'undefined') {
+        $(':button.savePgn[data-pgn="' + data.pgn + '"]')
+          .replaceWith('<div class="warning">Error saving game: ' + data.error + '</div>');
+      } else {
+        var link = '<div class="info"><a data-pgn="' + data.pgn
+          + '" href="http://www.chesspastebin.com/?p=' + data.id
+          + '" target="_blank">View game</a></div>';
+        $(':button.savePgn[data-pgn="' + data.pgn + '"]').replaceWith(link);
+      }
     },
     say: function(data) {
       //write msg
