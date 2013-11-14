@@ -228,6 +228,12 @@ define(function() {
       append(svgElem, g);
       arrows.push(g);
     }
+
+    /**
+     * add text to arrows
+     *
+     * @param attr
+     */
     function drawVotersCount(attr) {
       var g = createSvgEl("g");
       var text = createSvgEl("text");
