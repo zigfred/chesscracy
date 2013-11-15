@@ -1,3 +1,11 @@
+/**
+ *
+ * env vars:
+ * NODE_ENV developmet production
+ * CHESSPASTEBIN - a key for posting png to chesspastebin.com
+ *
+ *
+ */
 "use strict";
 var express = require('express');
 var app = express();
@@ -244,10 +252,14 @@ var game = {
     });
   },
   savePgn: function(data) {
+    if (typeof process.env.CHESSPASTEBIN === 'undefined') {
+      // TODO err notify
+      return;
+    }
     if (this.chess.game_over() && !(data.pgn in this.pgnSaved)) {
     this.pgnSaved[data.pgn] = true;
     var self = this;
-      var content = 'apikey=e565c5362c8f770be9f362dc4a23138289f9e139'
+      var content = 'apikey=' + process.env.CHESSPASTEBIN
       + '&name=ChessCracy'
       + '&validate=true'
       + '&pgn=' + data.pgn;
@@ -405,7 +417,11 @@ echo.installHandlers(server, {prefix:'/game'});
 
 app.use(express.compress());
 
-var staticDir = 'static' + (process.env.NODE_ENV === 'development' ? '' : '-build');
+var staticDir = 'static';
+if (process.env.NODE_ENV === 'production') {
+  staticDir = 'static-build';
+}
+
 app.use(express.static(staticDir, {maxAge: 1000 * 60 * 60 * 24}));
 
 
