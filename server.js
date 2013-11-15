@@ -22,6 +22,7 @@ var echo = sockjs.createServer();
  */
 function Player(conn) {
   this.conn = conn;
+  this.surrender = false;
 }
 /**
  * method for sending data object to user by websocket connection
@@ -156,6 +157,12 @@ var game = {
   init: function() {
     this.players = {};
     this.pgnSaved = {};
+    this.surrender = {
+      w: 0,
+      b: 0,
+      happen: false,
+      side: false
+    };
     this.votes = new Votes();
     this.count = { w: 0, b: 0};
     this.vTime = 20 * 1000; // max time for voting in milliseconds
@@ -177,7 +184,8 @@ var game = {
         side: player.side,
         count: this.count,
         endTurnTime: this.endTurnTime,
-        vTime: this.vTime
+        vTime: this.vTime,
+        surrender: this.surrender
       }
     });
 
@@ -239,6 +247,18 @@ var game = {
     }, 30000);
   },
   startNewGame: function() {
+    this.surrender = {
+      w: 0,
+      b: 0,
+      happen: false,
+      side: false
+    };
+    for (var playerId in this.players) {
+      if(this.players.hasOwnProperty(playerId)) {
+        this.players[playerId].surrender = false;
+      }
+    }
+
     var time = new Date();
     this.chess = new ch.Chess();
     this.votes.fill(game.chess.moves({ verbose: true }));
@@ -319,6 +339,36 @@ var game = {
       req.end(content, 'utf8');
     }
   },
+  handleSurrender: function(data, playerId) {
+    var player = this.players[playerId],
+      side = player.side;
+
+    if (player.surrender = data.surrender) {
+      this.surrender[side]++;
+    } else {
+      this.surrender[side]--;
+    }
+
+    this.checkSurrender();
+  },
+  checkSurrender: function() {
+    if (this.surrender.w / this.count.w >= 0.75) {
+      this.surrender.side = 'w';
+    }
+    if (this.surrender.b / this.count.b >= 0.75) {
+      this.surrender.side = 'b';
+    }
+    if (this.surrender.side) {
+      clearTimeout(this.electionTimeout);
+      this.makeGameover();
+      this.surrender.happen = true;
+    }
+
+    this.broadcast({
+      type: 'surrender',
+      data: this.surrender
+    });
+  },
 
   broadcast: function(data) {
     for (var playerId in this.players) {
@@ -340,6 +390,9 @@ var game = {
     }
     if (data.type === 'savepgn') {
       this.savePgn(data.data);
+    }
+    if (data.type === 'surrender') {
+      this.handleSurrender(data.data, playerId);
     }
 
   },
@@ -382,6 +435,11 @@ var game = {
       other = player.side=='w' ? 'b' : 'w';
     if (this.count[player.side] === 1) return;
 
+    if (player.surrender) {
+      this.surrender[player.side]--;
+      player.surrender = false;
+      this.checkSurrender();
+    }
     this.count[player.side]--;
     this.count[other]++;
     player.side = other;

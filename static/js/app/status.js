@@ -13,6 +13,7 @@ define([
       w:$('#white_count'),
       b:$('#black_count')
     },
+    surrender: $('#surrenderBtn'),
     you_orientation: $('#you_orientation'),
     your_move: $('#your_move')
   };
@@ -97,6 +98,18 @@ define([
         .html('Wait.');
     }
   }
+  function gameOver(msg, pgn) {
+    // stop progress
+    progress.reset();
+    // write logs
+    log(msg, 'warning');
+    var btn = '<button data-pgn="' + pgn
+      + '" type="button" class="btn savePgn" >Save pgn</button>';
+    elms.log.append(btn);
+    log('new game will start in 30s', 'info');
+    // turn alert
+    turnAlert(false);
+  }
 
 
   return {
@@ -112,6 +125,8 @@ define([
       // start progress
       progress.vTime = data.vTime || 20 * 1000;
       progress.start(turnColor, data.endTurnTime);
+      // update surrender status
+      this.updateSurrender(data.surrender, data.side, data.pgn);
     },
     newGame: function(orientation, endTurnTime) {
       // start progress
@@ -120,6 +135,8 @@ define([
       turnAlert(orientation === 'w');
       // write log
       log('New game started', 'info');
+      // enable and update surrender button
+      elms.surrender.removeClass('active').text('Surrender: 0').removeAttr("disabled");
     },
     move: function(data) {
       // restart progress
@@ -133,16 +150,8 @@ define([
       appendMoveToLog(data.move, data.turnNumber, data.turnColor);
       // check gameover
       if (data.gameover) {
-        // stop progress
-        progress.reset();
-        // write logs
-        log(data.gameover, 'warning');
-        var btn = '<button data-pgn="' + data.pgn
-          + '" type="button" class="btn savePgn" >Save pgn</button>';
-        elms.log.append(btn);
-        log('new game will start in 30s', 'info');
-        // turn alert
-        turnAlert(false);
+        // gameover
+        gameOver(data.gameover, data.pgn);
       }
     },
     players: function(data) {
@@ -164,6 +173,15 @@ define([
           + '" href="http://www.chesspastebin.com/?p=' + data.id
           + '" target="_blank">View game</a></div>';
         $(':button.savePgn[data-pgn="' + data.pgn + '"]').replaceWith(link);
+      }
+    },
+    updateSurrender: function(data, orientation, pgn){
+      // update button text
+      elms.surrender.text('Surrender: ' + data[orientation]);
+      // game over
+      if (data.happen) {
+        gameOver('The ' + (data.side === 'w' ? 'white' : 'black') + ' side was surrender', pgn);
+        elms.surrender.attr("disabled", "disabled");
       }
     },
     say: function(data) {

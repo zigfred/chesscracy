@@ -20,9 +20,11 @@ define([
       broadcast: $('#broadcast'),
       log: $('#log'),
       inputMsg: $('#inputMsg'),
-      sendMsg: $('#sendMsg')
+      sendMsg: $('#sendMsg'),
+      surrenderBtn: $("#surrenderBtn")
     };
     $(document).on('click', ':button.savePgn', this.savePgn.bind(this));
+    this.elms.surrenderBtn.click(this.handleSurrender.bind(this));
     $("#helpTab a").click(function (e) {
       e.preventDefault();
       $(this).tab('show');
@@ -30,6 +32,10 @@ define([
 
     // local time shift relative to server time. will calc in ws_move
     this.localTimeShift = 0;
+
+    this.surrender = {
+      happen: false
+    };
 
     // sizing
     var size = parseInt(this.elms.board.css('width'), 10);
@@ -51,7 +57,8 @@ define([
     return !(
         this.board.chess.game_over() === true ||
         piece[0] !== orientation[0] ||
-        this.board.chess.turn() !== orientation[0]
+        this.board.chess.turn() !== orientation[0] ||
+        this.surrender.happen
       );
   };
   Game.prototype.onDrop = function(source, target) {
@@ -98,6 +105,17 @@ define([
       }
     });
   };
+  Game.prototype.handleSurrender = function(e) {
+    var btn = $(e.currentTarget);
+    var status = !btn.hasClass('active');
+
+    this._send({
+      type: 'surrender',
+      data: {
+        surrender: status
+      }
+    });
+  };
 
    /*
    ws handlers
@@ -125,6 +143,8 @@ define([
     this.votes = Votes('votes', this.size);
 
     this.myVote = '';
+
+    this.surrender = data.surrender;
 
     this.status.start(data, this.board.chess.history({verbose:true}), this.board.chess.turn());
 
@@ -164,6 +184,7 @@ define([
     this.status.switchSide(newSide[0], this.board.chess.turn());
   };
   Game.prototype.ws_newgame = function(data) {
+    this.surrender.happen = false;
     this.board.newGame();
     this.status.newGame(this.board.orientation()[0], data.endTurnTime);
   };
@@ -175,6 +196,14 @@ define([
   };
   Game.prototype.ws_pgnlink = function(data) {
     this.status.updatePgnLink(data);
+  };
+  Game.prototype.ws_surrender = function(data) {
+    var pgn = '';
+    if (data.happen) {
+      this.surrender = data;
+      pgn = this.board.chess.pgn();
+    }
+    this.status.updateSurrender(data, this.board.orientation()[0], pgn);
   };
   /*
   methods
