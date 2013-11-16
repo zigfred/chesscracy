@@ -1,26 +1,26 @@
 {
-	"name": "chesscracy",
+  "name": "chesscracy",
   "author": {
     "name": "Pavel Savushchik",
     "email": "zigfredead@gmail.com"
   },
   "description": "Fast Chess game for multiple players with a voting mechanism.",
-	"version": "0.0.1",
-	"private": true,
+  "version": "0.0.1",
+  "private": true,
   "repository": {
     "type": "git",
     "url": "https://github.com/zigfred/chesscracy.git"
   },
-	"engines": {
-		"node": "0.10.x",
+  "engines": {
+    "node": "0.10.x",
     "npm": "1.2.x"
-	},
-	"dependencies": {
-		"express": "3.x",
-		"chess.js": "0.1.x",
-		"sockjs": "0.3.x",
+  },
+  "dependencies": {
+    "express": "3.x",
+    "chess.js": "0.1.x",
+    "sockjs": "0.3.x",
     "requirejs": "2.x"
-	},
+  },
   "scripts": {
     "postinstall": "node build.js"
   }
