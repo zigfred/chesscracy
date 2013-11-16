@@ -1,8 +1,16 @@
 {
 	"name": "chesscracy",
-  "author": "zigfred <zigfredead@gmail.com>",
+  "author": {
+    "name": "Pavel Savushchik",
+    "email": "zigfredead@gmail.com"
+  },
+  "description": "Fast Chess game for multiple players with a voting mechanism.",
 	"version": "0.0.1",
 	"private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zigfred/chesscracy.git"
+  },
 	"engines": {
 		"node": "0.10.x",
     "npm": "1.2.x"
