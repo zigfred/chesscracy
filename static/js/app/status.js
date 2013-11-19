@@ -180,7 +180,7 @@ define([
       elms.surrender.text('Surrender: ' + data[orientation]);
       // game over
       if (data.happen) {
-        gameOver('The ' + (data.side === 'w' ? 'white' : 'black') + ' side was surrender', pgn);
+        gameOver('The ' + (data.side === 'w' ? 'white' : 'black') + ' side surrendered', pgn);
         elms.surrender.attr("disabled", "disabled");
       }
     },
